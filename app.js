@@ -600,6 +600,11 @@ const setupEventListeners = () => {
         }
         else if (target === elements.changePasswordModalOverlay || target.matches('#cancel-change-password-btn')) { elements.changePasswordModalOverlay.classList.add('hidden'); }
     });
+
+    // DEFINITIVE FIX: Hides install button if app is already installed
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+        elements.installAppBtn?.classList.add('hidden');
+    }
 };
 
 const handleActionCodes = async () => {
