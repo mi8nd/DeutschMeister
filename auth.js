@@ -95,7 +95,8 @@ async function handleDeleteAccount() {
 
 async function handlePasswordReset(email) {
     try {
-        const actionCodeSettings = { url: 'https://deutschmeister.tiiny.site/' };
+        // The only change is on this line:
+        const actionCodeSettings = { url: 'https://deutschmeister.netlify.app/' };
         await sendPasswordResetEmail(auth, email, actionCodeSettings);
         return { success: true };
     } catch (error) {
