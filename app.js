@@ -1,11 +1,11 @@
-import { onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 import { auth, db } from './firebase.js';
 import { handleSignUp, handleLogin, handleLogout, handleLogoutAndReset, handleDeleteAccount, handlePasswordReset, handleVerifyPasswordResetCode, handleConfirmPasswordReset, handleChangePassword } from './auth.js';
-import { fetchPlaylistVideoCounts, fetchVideosForPlaylist, PLAYLISTS, fetchAndCacheAllVideos } from './youtube.js';
+import { fetchPlaylistVideoCounts, fetchAndCacheAllVideos, PLAYLISTS } from './youtube.js';
 import { quizData } from './quiz.js';
 
-// --- Global State ---
+// Global State
 let courseData = {}, currentUser = null, userProgress = {}, currentLevel = null;
 let currentPlaylist = [], currentQuiz = [], currentQuestionIndex = 0, score = 0;
 let player, timestampInterval;
@@ -14,7 +14,7 @@ let oobCode = null;
 let allVideosData = {};
 let deferredInstallPrompt = null;
 
-// --- Helper Functions ---
+// Helper Functions
 const showToast = (message, type = 'info') => {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
@@ -33,14 +33,11 @@ const applyTheme = (theme) => {
 
 const handleNavigation = (hash, updateHistory = true) => {
     const viewId = hash.substring(1) || 'home';
-
-    const currentView = document.querySelector('.view:not(.hidden)');
-    if (currentView && currentView.id === 'video-player-view') {
-        if (player && typeof player.stopVideo === 'function') { player.stopVideo(); }
-        if (elements.youtubePlayerContainer) { elements.youtubePlayerContainer.innerHTML = ''; }
+    if (document.querySelector('.view:not(.hidden)')?.id === 'video-player-view') {
+        if (player?.stopVideo) player.stopVideo();
+        if (elements.youtubePlayerContainer) elements.youtubePlayerContainer.innerHTML = '';
         clearInterval(timestampInterval);
     }
-
     document.querySelectorAll('.view').forEach(view => view.classList.add('hidden'));
     const targetView = document.getElementById(`${viewId}-view`);
     if (targetView) {
@@ -49,27 +46,21 @@ const handleNavigation = (hash, updateHistory = true) => {
     } else {
         document.getElementById('home-view').classList.remove('hidden');
     }
-
     if (elements.sidebarNav) {
         elements.sidebarNav.querySelectorAll('.nav-link').forEach(link => {
             link.classList.toggle('active', link.getAttribute('href') === `#${viewId}`);
         });
     }
-
     if (updateHistory && window.location.hash !== `#${viewId}`) {
-        history.pushState({ hash: viewId }, ``, `#${viewId}`);
+        history.pushState({ hash: viewId }, '', `#${viewId}`);
     }
-
     if (viewId === 'home' && currentUser) {
         renderUserDashboard();
         renderContinueWatching();
     }
 };
 
-const showView = (viewId) => {
-    const hash = `#${viewId}`;
-    handleNavigation(hash);
-};
+const showView = (viewId) => handleNavigation(`#${viewId}`);
 
 const showAuthForm = (formIdToShow) => {
     document.querySelectorAll('.auth-form').forEach(form => form.classList.add('hidden'));
@@ -82,34 +73,25 @@ const getPlaylistFromCache = (level) => {
     return videosForLevel;
 };
 
-// --- Mobile Menu (Page-Push Logic) ---
-const openMobileMenu = () => {
-    document.body.classList.add('sidebar-open');
-};
+// Mobile Menu Logic
+const openMobileMenu = () => document.body.classList.add('sidebar-open');
+const closeMobileMenu = () => document.body.classList.remove('sidebar-open');
 
-const closeMobileMenu = () => {
-    document.body.classList.remove('sidebar-open');
-};
-
-// --- Smart Avatar Generation ---
+// Smart Avatar Generation
 const generateInitialsAvatar = (displayName) => {
     if (!displayName) {
         const defaultAvatar = document.createElement('span');
         defaultAvatar.className = 'material-symbols-outlined';
         defaultAvatar.textContent = 'person';
         return defaultAvatar;
-    };
+    }
     const names = displayName.split(' ');
-    const initials = names.length > 1
-        ? `${names[0][0]}${names[names.length - 1][0]}`
-        : names[0].substring(0, 2);
-
+    const initials = names.length > 1 ? `${names[0][0]}${names[names.length - 1][0]}` : names[0].substring(0, 2);
     let hash = 0;
     for (let i = 0; i < displayName.length; i++) {
         hash = displayName.charCodeAt(i) + ((hash << 5) - hash);
     }
     const color = `hsl(${hash % 360}, 50%, 40%)`;
-
     const avatarDiv = document.createElement('div');
     avatarDiv.className = 'initials-avatar';
     avatarDiv.style.backgroundColor = color;
@@ -117,20 +99,15 @@ const generateInitialsAvatar = (displayName) => {
     return avatarDiv;
 };
 
-// --- NEW Direct Profile Picture Upload & Resize ---
+// Direct Profile Picture Upload & Resize
 async function handleProfilePictureUpload(e) {
     const file = e.target.files[0];
     if (!file || !currentUser) return;
-
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+    if (file.size > 5 * 1024 * 1024) {
         showToast('Image is too large. Please choose a file smaller than 5MB.', 'error');
         return;
     }
-
-    if (elements.pfpSpinnerOverlay) {
-        elements.pfpSpinnerOverlay.classList.remove('hidden');
-    }
-
+    elements.pfpSpinnerOverlay?.classList.remove('hidden');
     const reader = new FileReader();
     reader.onload = (event) => {
         const img = new Image();
@@ -141,19 +118,14 @@ async function handleProfilePictureUpload(e) {
             const targetSize = 256;
             canvas.width = targetSize;
             canvas.height = targetSize;
-
-            // Simple center-crop logic
             const hRatio = canvas.width / img.width;
             const vRatio = canvas.height / img.height;
             const ratio = Math.max(hRatio, vRatio);
             const centerShift_x = (canvas.width - img.width * ratio) / 2;
             const centerShift_y = (canvas.height - img.height * ratio) / 2;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0, img.width, img.height,
-                centerShift_x, centerShift_y, img.width * ratio, img.height * ratio);
-
-            const base64String = canvas.toDataURL('image/jpeg', 0.9); // Use JPEG for smaller size
-
+            ctx.drawImage(img, 0, 0, img.width, img.height, centerShift_x, centerShift_y, img.width * ratio, img.height * ratio);
+            const base64String = canvas.toDataURL('image/jpeg', 0.9);
             try {
                 const userDocRef = doc(db, "users", currentUser.uid);
                 await updateDoc(userDocRef, { photoURL: base64String });
@@ -161,28 +133,21 @@ async function handleProfilePictureUpload(e) {
                 renderProfileView();
                 showToast('Profile picture updated!', 'success');
             } catch (error) {
-                console.error("Error updating profile picture:", error);
                 showToast('Failed to update picture. Please try again.', 'error');
             } finally {
-                if (elements.pfpSpinnerOverlay) {
-                    elements.pfpSpinnerOverlay.classList.add('hidden');
-                }
+                elements.pfpSpinnerOverlay?.classList.add('hidden');
             }
         };
         img.onerror = () => {
-            showToast('Invalid image file.', 'error');
-            if (elements.pfpSpinnerOverlay) {
-                elements.pfpSpinnerOverlay.classList.add('hidden');
-            }
+             showToast('Invalid image file.', 'error');
+             elements.pfpSpinnerOverlay?.classList.add('hidden');
         };
     };
     reader.readAsDataURL(file);
     e.target.value = '';
 }
 
-
-// --- Core App Logic ---
-
+// Quiz Logic
 const startQuiz = (level) => {
     currentLevel = level;
     currentQuiz = quizData[level] || [];
@@ -217,8 +182,11 @@ const handleAnswer = (selectedIndex) => {
     }
     setTimeout(() => {
         currentQuestionIndex++;
-        if (currentQuestionIndex < currentQuiz.length) { displayQuestion(); }
-        else { showQuizResults(); }
+        if (currentQuestionIndex < currentQuiz.length) {
+            displayQuestion();
+        } else {
+            showQuizResults();
+        }
     }, 3000);
 };
 
@@ -228,6 +196,7 @@ const showQuizResults = () => {
     document.getElementById('quiz-score').textContent = `You scored ${score} out of ${currentQuiz.length}`;
 };
 
+// Video Player Logic
 const saveTimestamp = async (videoId, time) => {
     if (!currentUser || time < 1) return;
     if (!userProgress.timestamps) userProgress.timestamps = {};
@@ -237,7 +206,7 @@ const saveTimestamp = async (videoId, time) => {
 };
 
 const loadVideo = (videoId) => {
-    if (player && typeof player.destroy === 'function') player.destroy();
+    if (player?.destroy) player.destroy();
     clearInterval(timestampInterval);
     const startTime = userProgress.timestamps?.[videoId] || 0;
     player = new YT.Player('youtube-player-container', {
@@ -246,9 +215,7 @@ const loadVideo = (videoId) => {
         events: {
             'onReady': () => {
                 timestampInterval = setInterval(() => {
-                    if (player && typeof player.getCurrentTime === 'function') {
-                        saveTimestamp(videoId, player.getCurrentTime());
-                    }
+                    if (player?.getCurrentTime) saveTimestamp(videoId, player.getCurrentTime());
                 }, 5000);
             }
         }
@@ -256,10 +223,9 @@ const loadVideo = (videoId) => {
     document.querySelectorAll('.video-item').forEach(item => item.classList.toggle('active', item.dataset.videoId === videoId));
 };
 
+// Rendering Functions
 const renderUserDashboard = () => {
-    if (elements.welcomeMessage) {
-        elements.welcomeMessage.textContent = `Welcome back, ${currentUser.displayName || 'User'}!`;
-    }
+    elements.welcomeMessage.textContent = `Welcome back, ${currentUser.displayName || 'User'}!`;
     const progressValues = Object.values(userProgress.progress || {});
     const videosCompleted = progressValues.reduce((sum, p) => sum + p, 0);
     const totalVideos = Object.values(courseData).reduce((sum, level) => sum + (level.totalVideos || 0), 0);
@@ -269,8 +235,7 @@ const renderUserDashboard = () => {
         const radius = circle.r.baseVal.value;
         const circumference = radius * 2 * Math.PI;
         circle.style.strokeDasharray = `${circumference} ${circumference}`;
-        const offset = circumference - (overallPercentage / 100) * circumference;
-        circle.style.strokeDashoffset = offset;
+        circle.style.strokeDashoffset = circumference - (overallPercentage / 100) * circumference;
     }
     document.getElementById('progress-ring-text').textContent = `${overallPercentage}%`;
     document.getElementById('stat-videos-completed').textContent = videosCompleted;
@@ -304,10 +269,8 @@ const renderProfileView = () => {
     if (!elements.profileName) return;
     elements.profileName.textContent = currentUser.displayName;
     elements.profileEmail.textContent = currentUser.email;
-
     const pfpContainer = elements.pfpContainer;
     pfpContainer.innerHTML = '';
-
     if (userProgress.photoURL) {
         const img = document.createElement('img');
         img.src = userProgress.photoURL;
@@ -315,27 +278,23 @@ const renderProfileView = () => {
         img.className = 'profile-avatar-img';
         pfpContainer.appendChild(img);
     } else {
-        const avatar = generateInitialsAvatar(currentUser.displayName);
-        pfpContainer.appendChild(avatar);
+        pfpContainer.appendChild(generateInitialsAvatar(currentUser.displayName));
     }
-
     const overlay = document.createElement('div');
     overlay.className = 'profile-avatar-overlay';
     overlay.innerHTML = '<span class="material-symbols-outlined">photo_camera</span>';
     pfpContainer.appendChild(overlay);
-
     const spinnerOverlay = document.createElement('div');
     spinnerOverlay.className = 'spinner-overlay hidden';
     spinnerOverlay.id = 'pfp-spinner-overlay';
     spinnerOverlay.innerHTML = '<div class="spinner"></div>';
     pfpContainer.appendChild(spinnerOverlay);
-
     elements.pfpSpinnerOverlay = spinnerOverlay;
 };
 
 const renderVideoList = () => {
     if (!elements.videoList) return;
-    const completedVideos = (userProgress.progress && userProgress.progress[currentLevel]) ? userProgress.progress[currentLevel] : 0;
+    const completedVideos = userProgress.progress?.[currentLevel] || 0;
     elements.videoList.innerHTML = currentPlaylist.map((video, index) => {
         const isCompleted = index < completedVideos;
         return `<div class="video-item" data-video-id="${video.videoId}"><img src="${video.thumbnail}" alt="${video.title}" class="video-item-thumbnail"><div class="video-item-details"><h4>${video.title}</h4><button class="btn btn-secondary complete-btn" data-video-index="${index}" ${isCompleted ? 'disabled' : ''}>${isCompleted ? 'Completed' : 'Mark as Complete'}</button></div></div>`;
@@ -344,8 +303,7 @@ const renderVideoList = () => {
 
 const markVideoAsComplete = async (videoIndex) => {
     const newProgress = videoIndex + 1;
-    const currentProgress = (userProgress.progress && userProgress.progress[currentLevel]) ? userProgress.progress[currentLevel] : 0;
-    if (newProgress <= currentProgress) return;
+    if (newProgress <= (userProgress.progress?.[currentLevel] || 0)) return;
     showToast('Progress Saved!', 'success');
     if (!userProgress.progress) userProgress.progress = {};
     userProgress.progress[currentLevel] = newProgress;
@@ -358,9 +316,7 @@ const resetCourseProgress = async () => {
     if (!currentLevel) return;
     if (userProgress.progress) userProgress.progress[currentLevel] = 0;
     currentPlaylist.forEach(video => {
-        if (userProgress.timestamps && userProgress.timestamps[video.videoId]) {
-            delete userProgress.timestamps[video.videoId];
-        }
+        if (userProgress.timestamps?.[video.videoId]) delete userProgress.timestamps[video.videoId];
     });
     renderVideoList();
     renderUserDashboard();
@@ -375,12 +331,10 @@ const resetAllProgress = async () => {
     if (!currentUser) return;
     userProgress.progress = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0 };
     userProgress.timestamps = {};
-
     await updateDoc(doc(db, "users", currentUser.uid), {
         progress: userProgress.progress,
         timestamps: userProgress.timestamps
     });
-
     renderUserDashboard();
     renderContinueWatching();
     showToast('All your progress has been reset.', 'info');
@@ -393,27 +347,22 @@ const renderContinueWatching = () => {
     const timestamps = userProgress.timestamps || {};
     const progress = userProgress.progress || {};
     let inProgressVideos = [];
-
     for (const videoId in timestamps) {
         if (timestamps[videoId] < 5) continue;
         const videoInfo = allVideosData[videoId];
         if (!videoInfo) continue;
         const level = videoInfo.level;
         const completedInLevel = progress[level] || 0;
-
         if (videoInfo.index >= completedInLevel) {
             inProgressVideos.push({ ...videoInfo, timestamp: timestamps[videoId] });
         }
     }
-
     inProgressVideos.sort((a, b) => b.timestamp - a.timestamp);
     const recentVideos = inProgressVideos.slice(0, 5);
-
     if (recentVideos.length === 0) {
         activityList.innerHTML = '<p class="empty-state">No recent activity. Start a lesson to see it here!</p>';
         return;
     }
-
     recentVideos.forEach(video => {
         const card = document.createElement('div');
         card.className = 'continue-watching-card';
@@ -434,6 +383,7 @@ const renderContinueWatching = () => {
     });
 };
 
+// UI State Management
 const updateUIForUser = (user, progressData) => {
     currentUser = user;
     userProgress = progressData;
@@ -445,7 +395,6 @@ const updateUIForUser = (user, progressData) => {
     renderProfileView();
     renderUserDashboard();
     renderContinueWatching();
-
     handleNavigation(window.location.hash || '#home', false);
 };
 
@@ -469,68 +418,44 @@ const cacheDOMElements = () => {
 };
 
 const setupEventListeners = () => {
-    // PWA Install Handlers
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredInstallPrompt = e;
-        if (elements.installAppBtn) {
-            elements.installAppBtn.classList.remove('hidden');
-        }
+        elements.installAppBtn?.classList.remove('hidden');
     });
-
-    if (elements.installAppBtn) {
-        elements.installAppBtn.addEventListener('click', async () => {
-            if (!deferredInstallPrompt) {
-                return;
-            }
-            deferredInstallPrompt.prompt();
-            const { outcome } = await deferredInstallPrompt.userChoice;
-            console.log(`User response to the install prompt: ${outcome}`);
-            deferredInstallPrompt = null;
-            elements.installAppBtn.classList.add('hidden');
-        });
-    }
 
     window.addEventListener('appinstalled', () => {
         deferredInstallPrompt = null;
-        if (elements.installAppBtn) {
-            elements.installAppBtn.classList.add('hidden');
-        }
+        elements.installAppBtn?.classList.add('hidden');
         showToast('App installed successfully!', 'success');
     });
 
-    // Mobile Menu Listeners
-    if (elements.hamburgerBtn) {
-        elements.hamburgerBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            openMobileMenu();
-        });
-    }
-    if (elements.closeSidebarBtn) {
-        elements.closeSidebarBtn.addEventListener('click', closeMobileMenu);
-    }
-
-    window.addEventListener('hashchange', () => {
-        handleNavigation(window.location.hash, false);
+    elements.hamburgerBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openMobileMenu();
     });
 
-    elements.loginForm.addEventListener('submit', async (e) => {
+    elements.closeSidebarBtn?.addEventListener('click', closeMobileMenu);
+    
+    window.addEventListener('hashchange', () => handleNavigation(window.location.hash, false));
+
+    elements.loginForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const loginError = document.getElementById('login-error');
         loginError.textContent = '';
         const result = await handleLogin(elements.loginForm['login-email'].value, elements.loginForm['login-password'].value);
-        if (!result.success) { loginError.textContent = 'Invalid email or password.'; }
+        if (!result.success) loginError.textContent = 'Invalid email or password.';
     });
 
-    elements.signupForm.addEventListener('submit', async (e) => {
+    elements.signupForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const signupError = document.getElementById('signup-error');
         signupError.textContent = '';
         const result = await handleSignUp(elements.signupForm['signup-name'].value, elements.signupForm['signup-email'].value, elements.signupForm['signup-password'].value);
-        if (!result.success) { signupError.textContent = result.error.includes('auth/email-already-in-use') ? 'This email is already in use.' : 'An error occurred.'; }
+        if (!result.success) signupError.textContent = result.error.includes('auth/email-already-in-use') ? 'This email is already in use.' : 'An error occurred.';
     });
 
-    elements.forgotPasswordForm.addEventListener('submit', async (e) => {
+    elements.forgotPasswordForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const forgotError = document.getElementById('forgot-error');
         forgotError.textContent = '';
@@ -544,7 +469,7 @@ const setupEventListeners = () => {
         }
     });
 
-    elements.passwordResetForm.addEventListener('submit', async (e) => {
+    elements.passwordResetForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const newPassword = document.getElementById('reset-new-password').value;
         const resetError = document.getElementById('reset-error');
@@ -560,7 +485,7 @@ const setupEventListeners = () => {
         }
     });
 
-    elements.changePasswordForm.addEventListener('submit', async (e) => {
+    elements.changePasswordForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const newPassword = document.getElementById('change-new-password').value;
         elements.changePasswordError.textContent = '';
@@ -569,54 +494,53 @@ const setupEventListeners = () => {
             showToast('Password changed successfully!', 'success');
             elements.changePasswordModalOverlay.classList.add('hidden');
         } else {
-            let errorMessage = 'Failed to change password.';
-            if (result.error && result.error.includes('auth/requires-recent-login')) {
-                errorMessage = 'This action requires recent authentication. Please log out and log back in to change your password.';
-            }
+            let errorMessage = 'Failed to change password. This action requires recent authentication. Please log out and log back in to change your password.';
             elements.changePasswordError.textContent = errorMessage;
         }
     });
 
-    if (elements.pfpContainer) {
-        elements.pfpContainer.addEventListener('click', () => elements.pfpUploadInput.click());
-    }
-    if (elements.pfpUploadInput) {
-        elements.pfpUploadInput.addEventListener('change', handleProfilePictureUpload);
-    }
+    elements.pfpContainer?.addEventListener('click', () => elements.pfpUploadInput.click());
+    elements.pfpUploadInput?.addEventListener('change', handleProfilePictureUpload);
 
     document.body.addEventListener('click', async (e) => {
-        if (document.body.classList.contains('sidebar-open')) {
-            if (!e.target.closest('.sidebar')) {
-                closeMobileMenu();
-            }
+        if (document.body.classList.contains('sidebar-open') && !e.target.closest('.sidebar')) {
+            closeMobileMenu();
         }
 
         const target = e.target;
         const navLink = target.closest('.nav-link');
         const continueCard = target.closest('.continue-watching-card');
 
-        if (target.matches('#show-signup')) { e.preventDefault(); showAuthForm('signup-form'); }
+        if (target.closest('#install-app-btn')) {
+            if (deferredInstallPrompt) {
+                deferredInstallPrompt.prompt();
+                const { outcome } = await deferredInstallPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    showToast('App installing!', 'success');
+                }
+                deferredInstallPrompt = null;
+                elements.installAppBtn?.classList.add('hidden');
+            }
+        } else if (target.matches('#show-signup')) { e.preventDefault(); showAuthForm('signup-form'); }
         else if (target.matches('#show-login')) { e.preventDefault(); showAuthForm('login-form'); }
         else if (target.matches('#forgot-password-link')) { e.preventDefault(); showAuthForm('forgot-password-form'); }
         else if (target.matches('#back-to-login')) { e.preventDefault(); showAuthForm('login-form'); }
         else if (navLink) {
             e.preventDefault();
-            const hash = navLink.getAttribute('href');
-            handleNavigation(hash);
-            if (window.innerWidth <= 992) {
-                closeMobileMenu();
-            }
+            handleNavigation(navLink.getAttribute('href'));
+            if (window.innerWidth <= 992) closeMobileMenu();
         }
         else if (continueCard) {
-            const level = continueCard.dataset.level;
-            if (level) {
-                currentLevel = level;
-                document.getElementById('video-view-title').textContent = `Level ${currentLevel} Course`;
-                showView('video-player');
-                elements.videoList.innerHTML = '<div class="spinner"></div>';
-                currentPlaylist = getPlaylistFromCache(level);
-                if (currentPlaylist.length) { renderVideoList(); loadVideo(continueCard.dataset.videoId); }
-                else { elements.videoList.innerHTML = '<p>Could not load videos.</p>'; }
+            currentLevel = continueCard.dataset.level;
+            document.getElementById('video-view-title').textContent = `Level ${currentLevel} Course`;
+            showView('video-player');
+            elements.videoList.innerHTML = '<div class="spinner"></div>';
+            currentPlaylist = getPlaylistFromCache(currentLevel);
+            if (currentPlaylist.length) {
+                renderVideoList();
+                loadVideo(continueCard.dataset.videoId);
+            } else {
+                elements.videoList.innerHTML = '<p>Could not load videos.</p>';
             }
         }
         else if (target.matches('.start-course-btn')) {
@@ -625,8 +549,12 @@ const setupEventListeners = () => {
             showView('video-player');
             elements.videoList.innerHTML = '<div class="spinner"></div>';
             currentPlaylist = getPlaylistFromCache(currentLevel);
-            if (currentPlaylist.length) { renderVideoList(); loadVideo(currentPlaylist[0].videoId); }
-            else { elements.videoList.innerHTML = '<p>Could not load videos.</p>'; }
+            if (currentPlaylist.length) {
+                renderVideoList();
+                loadVideo(currentPlaylist[0].videoId);
+            } else {
+                elements.videoList.innerHTML = '<p>Could not load videos.</p>';
+            }
         }
         else if (target.matches('#back-to-courses-btn')) { showView('courses'); }
         else if (target.closest('.video-item') && !target.matches('.complete-btn')) { loadVideo(target.closest('.video-item').dataset.videoId); }
@@ -635,7 +563,7 @@ const setupEventListeners = () => {
         else if (target.matches('.quiz-option-btn')) { handleAnswer(parseInt(target.dataset.index, 10)); }
         else if (target.matches('#quiz-retry-btn')) { startQuiz(currentLevel); }
         else if (target.matches('#quiz-back-btn')) { showView('quizzes'); }
-        else if (target.matches('#dark-mode-toggle') || target.closest('#dark-mode-toggle')) {
+        else if (target.closest('#dark-mode-toggle')) {
             const newTheme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
             localStorage.setItem('theme', newTheme);
             applyTheme(newTheme);
@@ -643,8 +571,7 @@ const setupEventListeners = () => {
         else if (target.matches('#logout-btn')) { elements.logoutModalOverlay.classList.remove('hidden'); }
         else if (target === elements.logoutModalOverlay || target.matches('#cancel-logout-btn')) { elements.logoutModalOverlay.classList.add('hidden'); }
         else if (target.matches('#confirm-logout-btn')) {
-            const shouldReset = elements.resetProgressCheckbox.checked;
-            (shouldReset ? handleLogoutAndReset() : handleLogout()).finally(() => {
+            (elements.resetProgressCheckbox.checked ? handleLogoutAndReset() : handleLogout()).finally(() => {
                 elements.logoutModalOverlay.classList.add('hidden');
             });
         }
@@ -652,33 +579,23 @@ const setupEventListeners = () => {
             elements.resetCourseConfirmText.textContent = `Reset all progress for Level ${currentLevel}?`;
             elements.resetCourseModalOverlay.classList.remove('hidden');
         }
-        else if (target === elements.resetCourseModalOverlay || target.matches('#cancel-reset-btn')) {
-            elements.resetCourseModalOverlay.classList.add('hidden');
-        }
+        else if (target === elements.resetCourseModalOverlay || target.matches('#cancel-reset-btn')) { elements.resetCourseModalOverlay.classList.add('hidden'); }
         else if (target.matches('#confirm-reset-btn')) {
             resetCourseProgress();
             elements.resetCourseModalOverlay.classList.add('hidden');
         }
-        else if (target.matches('#reset-all-progress-btn')) {
-            elements.resetAllModalOverlay.classList.remove('hidden');
-        }
-        else if (target === elements.resetAllModalOverlay || target.matches('#cancel-reset-all-btn')) {
-            elements.resetAllModalOverlay.classList.add('hidden');
-        }
+        else if (target.matches('#reset-all-progress-btn')) { elements.resetAllModalOverlay.classList.remove('hidden'); }
+        else if (target === elements.resetAllModalOverlay || target.matches('#cancel-reset-all-btn')) { elements.resetAllModalOverlay.classList.add('hidden'); }
         else if (target.matches('#confirm-reset-all-btn')) {
             resetAllProgress();
             elements.resetAllModalOverlay.classList.add('hidden');
         }
-        else if (target.matches('#delete-account-btn')) {
-            elements.deleteAccountModalOverlay.classList.remove('hidden');
-        }
-        else if (target === elements.deleteAccountModalOverlay || target.matches('#cancel-delete-btn')) {
-            elements.deleteAccountModalOverlay.classList.add('hidden');
-        }
+        else if (target.matches('#delete-account-btn')) { elements.deleteAccountModalOverlay.classList.remove('hidden'); }
+        else if (target === elements.deleteAccountModalOverlay || target.matches('#cancel-delete-btn')) { elements.deleteAccountModalOverlay.classList.add('hidden'); }
         else if (target.matches('#confirm-delete-btn')) {
             const result = await handleDeleteAccount();
-            if (result.success) { showToast('Account deleted successfully.', 'info'); }
-            else { showToast(`Error: ${result.error}`, 'error'); }
+            if (result.success) showToast('Account deleted successfully.', 'info');
+            else showToast(`Error: ${result.error}`, 'error');
             elements.deleteAccountModalOverlay.classList.add('hidden');
         }
         else if (target.matches('#change-password-btn')) {
@@ -687,9 +604,7 @@ const setupEventListeners = () => {
             elements.changePasswordForm.reset();
             elements.changePasswordModalOverlay.classList.remove('hidden');
         }
-        else if (target === elements.changePasswordModalOverlay || target.matches('#cancel-change-password-btn')) {
-            elements.changePasswordModalOverlay.classList.add('hidden');
-        }
+        else if (target === elements.changePasswordModalOverlay || target.matches('#cancel-change-password-btn')) { elements.changePasswordModalOverlay.classList.add('hidden'); }
     });
 };
 
@@ -708,10 +623,7 @@ const handleActionCodes = async () => {
             showToast('Invalid or expired password reset link.', 'error');
             oobCode = null;
         }
-        const newUrl = new URL(window.location);
-        newUrl.search = '';
-        newUrl.hash = '';
-        window.history.replaceState({}, document.title, newUrl.toString());
+        history.replaceState({}, document.title, window.location.pathname);
     }
 };
 
@@ -719,10 +631,10 @@ const initializeApp = async () => {
     try {
         courseData = await fetchPlaylistVideoCounts();
         allVideosData = await fetchAndCacheAllVideos();
-        if (!courseData) { throw new Error("Course data is null or empty."); }
+        if (!courseData) throw new Error("Course data is null or empty.");
     } catch (error) {
         console.error("Initialization failed:", error);
-        document.body.innerHTML = '<h2>Critical Error: Could not load course data.</h2>';
+        document.body.innerHTML = '<h2>Critical Error: Could not load course data. Please check your network connection and API key configuration.</h2>';
         return;
     }
     onAuthStateChanged(auth, async (user) => {
