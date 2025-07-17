@@ -1,5 +1,4 @@
-const CACHE_NAME = 'DeutschMeister-v1'; // Use a new cache name to ensure old assets are cleared
-
+const CACHE_NAME = 'DeutschMeister-v2'; // A new version to force update
 const CORE_ASSETS = [
     '/',
     'index.html',
@@ -14,24 +13,23 @@ const CORE_ASSETS = [
     'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0'
 ];
 
-// Install event: cache the core assets of the app.
-self.addEventListener('install', event => {
+// On install, cache the core assets
+self.addEventListener('install', (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => {
-                console.log('Service Worker: Caching core assets');
-                return cache.addAll(CORE_ASSETS);
-            })
+        caches.open(CACHE_NAME).then((cache) => {
+            console.log('Service Worker: Caching core assets');
+            return cache.addAll(CORE_ASSETS);
+        })
     );
     self.skipWaiting();
 });
 
-// Activate event: clean up old caches.
-self.addEventListener('activate', event => {
+// On activate, clean up old caches
+self.addEventListener('activate', (event) => {
     event.waitUntil(
-        caches.keys().then(cacheNames => {
+        caches.keys().then((cacheNames) => {
             return Promise.all(
-                cacheNames.map(cacheName => {
+                cacheNames.map((cacheName) => {
                     if (cacheName !== CACHE_NAME) {
                         console.log('Service Worker: Clearing old cache:', cacheName);
                         return caches.delete(cacheName);
@@ -42,35 +40,31 @@ self.addEventListener('activate', event => {
     );
 });
 
-// Fetch event: Apply a smarter caching strategy.
-self.addEventListener('fetch', event => {
+// On fetch, apply the correct caching strategy
+self.addEventListener('fetch', (event) => {
     const requestUrl = new URL(event.request.url);
 
-    // THIS IS THE DEFINITIVE FIX:
-    // If the request is for the YouTube API, do not intercept it.
-    // Let the browser handle it directly to preserve all headers.
-    if (requestUrl.hostname === 'www.googleapis.com') {
+    // STRATEGY 1: Network Only for APIs.
+    // If the request is for an external API (Google, Firebase), always go to the network.
+    // This is the definitive fix for the 403 error.
+    if (requestUrl.hostname !== self.location.hostname) {
+        event.respondWith(fetch(event.request));
         return;
     }
 
-    // For all other GET requests, use the "Network First, Cache Second" strategy.
-    if (event.request.method === 'GET') {
-        event.respondWith(
-            fetch(event.request)
-                .then(networkResponse => {
-                    // If the network request is successful, cache the new response.
-                    const responseToCache = networkResponse.clone();
-                    caches.open(CACHE_NAME)
-                        .then(cache => {
-                            cache.put(event.request, responseToCache);
-                        });
-                    // Return the fresh response from the network.
+    // STRATEGY 2: Stale-While-Revalidate for core assets.
+    // This makes the app load instantly from cache, then updates in the background.
+    event.respondWith(
+        caches.open(CACHE_NAME).then((cache) => {
+            return cache.match(event.request).then((cachedResponse) => {
+                const fetchPromise = fetch(event.request).then((networkResponse) => {
+                    cache.put(event.request, networkResponse.clone());
                     return networkResponse;
-                })
-                .catch(() => {
-                    // If the network fails (user is offline), serve from the cache.
-                    return caches.match(event.request);
-                })
-        );
-    }
+                });
+
+                // Return the cached response immediately if available, otherwise wait for the network
+                return cachedResponse || fetchPromise;
+            });
+        })
+    );
 });
