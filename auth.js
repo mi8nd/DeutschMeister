@@ -24,7 +24,7 @@ async function handleSignUp(name, email, password) {
             displayName: name,
             email: user.email,
             createdAt: new Date(),
-            photoURL: null, // Add photoURL field for new users
+            photoURL: null,
             progress: { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0 },
             timestamps: {},
             quizScores: {}
@@ -34,7 +34,6 @@ async function handleSignUp(name, email, password) {
         if (user) {
             try { await deleteUser(user); } catch (deleteError) { console.error("Rollback failed:", deleteError); }
         }
-        console.error("Signup failed:", error);
         return { success: false, error: error.message };
     }
 }
@@ -44,7 +43,6 @@ async function handleLogin(email, password) {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         return { success: true, user: userCredential.user };
     } catch (error) {
-        console.error("Login failed:", error);
         return { success: false, error: error.message };
     }
 }
@@ -54,7 +52,6 @@ async function handleLogout() {
         await signOut(auth);
         return { success: true };
     } catch (error) {
-        console.error("Logout failed:", error);
         return { success: false, error: error.message };
     }
 }
@@ -73,7 +70,6 @@ async function handleLogoutAndReset() {
         await signOut(auth);
         return { success: true };
     } catch (error) {
-        console.error("Logout and reset failed:", error);
         return { success: false, error: error.message };
     }
 }
@@ -88,19 +84,16 @@ async function handleDeleteAccount() {
         }
         return { success: true };
     } catch (error) {
-        console.error("Account deletion failed:", error);
         return { success: false, error: error.message };
     }
 }
 
 async function handlePasswordReset(email) {
     try {
-        // The only change is on this line:
         const actionCodeSettings = { url: 'https://deutschmeister.netlify.app/' };
         await sendPasswordResetEmail(auth, email, actionCodeSettings);
         return { success: true };
     } catch (error) {
-        console.error("Password reset attempt failed:", error.code, error.message);
         if (error.code === 'auth/user-not-found') {
             return { success: true };
         }
@@ -113,38 +106,15 @@ async function handleVerifyPasswordResetCode(code) {
         const email = await verifyPasswordResetCode(auth, code);
         return { success: true, email: email };
     } catch (error) {
-        console.error("Invalid or expired password reset code:", error);
         return { success: false, error: error.message };
     }
 }
 
 async function handleConfirmPasswordReset(code, newPassword) {
     try {
-        const email = await verifyPasswordResetCode(auth, code);
         await confirmPasswordReset(auth, code, newPassword);
-
-        const userCredential = await signInWithEmailAndPassword(auth, email, newPassword);
-        const user = userCredential.user;
-
-        const userDocRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userDocRef);
-
-        if (!userDoc.exists()) {
-            await setDoc(userDocRef, {
-                uid: user.uid,
-                displayName: user.displayName || '',
-                email: user.email,
-                createdAt: new Date(),
-                photoURL: null,
-                progress: { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0 },
-                timestamps: {},
-                quizScores: {}
-            });
-        }
-
         return { success: true };
     } catch (error) {
-        console.error("Failed to confirm password reset:", error);
         return { success: false, error: error.message };
     }
 }
@@ -152,13 +122,10 @@ async function handleConfirmPasswordReset(code, newPassword) {
 async function handleChangePassword(newPassword) {
     try {
         const user = auth.currentUser;
-        if (!user) {
-            throw new Error('No user is currently logged in.');
-        }
+        if (!user) throw new Error('No user is currently logged in.');
         await updatePassword(user, newPassword);
         return { success: true };
     } catch (error) {
-        console.error("Password change failed:", error);
         return { success: false, error: error.message };
     }
 }
