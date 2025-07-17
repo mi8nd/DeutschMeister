@@ -1,5 +1,4 @@
-// The static cache name you requested.
-const CACHE_NAME = 'DeutschMeister';
+const CACHE_NAME = 'DeutschMeister-v1'; // Use a new cache name to ensure old assets are cleared
 
 const CORE_ASSETS = [
     '/',
@@ -27,14 +26,14 @@ self.addEventListener('install', event => {
     self.skipWaiting();
 });
 
-// Activate event: clean up old caches (this is good practice).
+// Activate event: clean up old caches.
 self.addEventListener('activate', event => {
-    const cacheWhitelist = [CACHE_NAME];
     event.waitUntil(
         caches.keys().then(cacheNames => {
             return Promise.all(
                 cacheNames.map(cacheName => {
-                    if (cacheWhitelist.indexOf(cacheName) === -1) {
+                    if (cacheName !== CACHE_NAME) {
+                        console.log('Service Worker: Clearing old cache:', cacheName);
                         return caches.delete(cacheName);
                     }
                 })
@@ -43,34 +42,35 @@ self.addEventListener('activate', event => {
     );
 });
 
-// Fetch event: Apply a smart caching strategy.
+// Fetch event: Apply a smarter caching strategy.
 self.addEventListener('fetch', event => {
     const requestUrl = new URL(event.request.url);
 
-    // RULE 1: Forbid caching of non-GET requests or requests to Firebase APIs.
-    // This is the fix for your CORS and Storage errors.
-    if (event.request.method !== 'GET' || requestUrl.origin.includes('firebase') || requestUrl.origin.includes('googleapis.com')) {
-        // Let the browser handle the request normally, do not cache.
-        return fetch(event.request);
+    // THIS IS THE DEFINITIVE FIX:
+    // If the request is for the YouTube API, do not intercept it.
+    // Let the browser handle it directly to preserve all headers.
+    if (requestUrl.hostname === 'www.googleapis.com') {
+        return;
     }
 
-    // RULE 2: For all other GET requests, use the "Network First, Cache Second" strategy.
-    // This ensures users always get the latest version if they are online.
-    event.respondWith(
-        fetch(event.request)
-            .then(networkResponse => {
-                // If the network request is successful, cache the new response.
-                const responseToCache = networkResponse.clone();
-                caches.open(CACHE_NAME)
-                    .then(cache => {
-                        cache.put(event.request, responseToCache);
-                    });
-                // Return the fresh response from the network.
-                return networkResponse;
-            })
-            .catch(() => {
-                // If the network fails (user is offline), serve from the cache.
-                return caches.match(event.request);
-            })
-    );
+    // For all other GET requests, use the "Network First, Cache Second" strategy.
+    if (event.request.method === 'GET') {
+        event.respondWith(
+            fetch(event.request)
+                .then(networkResponse => {
+                    // If the network request is successful, cache the new response.
+                    const responseToCache = networkResponse.clone();
+                    caches.open(CACHE_NAME)
+                        .then(cache => {
+                            cache.put(event.request, responseToCache);
+                        });
+                    // Return the fresh response from the network.
+                    return networkResponse;
+                })
+                .catch(() => {
+                    // If the network fails (user is offline), serve from the cache.
+                    return caches.match(event.request);
+                })
+        );
+    }
 });
