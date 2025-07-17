@@ -427,7 +427,7 @@ const setupEventListeners = () => {
     window.addEventListener('appinstalled', () => {
         deferredInstallPrompt = null;
         elements.installAppBtn?.classList.add('hidden');
-        showToast('App installed successfully!', 'success');
+        // The toast is removed to prevent double notifications. The browser provides its own.
     });
 
     elements.hamburgerBtn?.addEventListener('click', (e) => {
@@ -516,7 +516,7 @@ const setupEventListeners = () => {
                 deferredInstallPrompt.prompt();
                 const { outcome } = await deferredInstallPrompt.userChoice;
                 if (outcome === 'accepted') {
-                    showToast('App installing!', 'success');
+                    console.log('User accepted the A2HS prompt');
                 }
                 deferredInstallPrompt = null;
                 elements.installAppBtn?.classList.add('hidden');
