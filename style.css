@@ -41,6 +41,11 @@ body.dark-mode {
   padding: 0;
 }
 
+/* Fluid Root Font Size for Universal Scaling */
+html {
+    font-size: clamp(14px, 1.5vw, 16px);
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-main);
@@ -51,7 +56,6 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-  /* Prevent horizontal scroll during animation */
 }
 
 /* Page-Push Menu Style */
@@ -59,13 +63,92 @@ body.sidebar-open .main-content {
     transform: translateX(260px);
     box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
     border-radius: 12px;
-    pointer-events: none; /* Allows clicks to pass through to the sidebar */
+    pointer-events: none;
 }
 
 .hidden {
   display: none !important;
 }
 
+.app-container {
+  height: 100vh;
+  opacity: 0;
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.sidebar {
+  background: var(--bg-sidebar);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease-in-out;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 260px;
+  transform: translateX(-100%);
+  z-index: 200;
+}
+
+body.sidebar-open .sidebar {
+  transform: translateX(0);
+}
+
+.main-content {
+  overflow-y: auto;
+  height: 100vh;
+  padding: 1rem;
+  transition: transform 0.3s ease-in-out, border-radius 0.3s ease-in-out;
+  background: var(--bg-main);
+  position: relative;
+  z-index: 300;
+}
+
+.view-header h2 {
+    font-size: clamp(1.5rem, 5vw, 2.2rem); /* Fluid Typography */
+}
+
+/* SMARTWATCH VIEW */
+@media (max-width: 300px) {
+    .main-header,
+    .view-header p,
+    .stat-card,
+    .recent-activity {
+        display: none;
+    }
+
+    .view-header {
+        border: none;
+        text-align: center;
+    }
+
+    .view-header h2 {
+        font-size: 1.2rem;
+    }
+
+    #home-view {
+        padding-top: 2rem;
+    }
+
+    .progress-ring-card {
+        border: none;
+        background: transparent;
+        padding: 0;
+    }
+
+    .progress-ring {
+        width: 180px;
+        height: 180px;
+    }
+
+    .progress-ring__svg {
+        width: 180px;
+        height: 180px;
+    }
+}
+
+/* All other styles remain the same */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -311,31 +394,6 @@ body.sidebar-open .main-content {
   cursor: pointer;
 }
 
-.app-container {
-  height: 100vh;
-  opacity: 0;
-  animation: fadeIn 0.5s ease-out forwards;
-}
-
-.sidebar {
-  background: var(--bg-sidebar);
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.3s ease-in-out;
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 260px;
-  transform: translateX(-100%);
-  z-index: 200;
-}
-
-body.sidebar-open .sidebar {
-  transform: translateX(0);
-}
-
 .sidebar-header {
   display: flex;
   justify-content: space-between;
@@ -407,16 +465,6 @@ body.sidebar-open .sidebar {
   opacity: 0.9;
 }
 
-.main-content {
-  overflow-y: auto;
-  height: 100vh;
-  padding: 1rem;
-  transition: transform 0.3s ease-in-out, border-radius 0.3s ease-in-out;
-  background: var(--bg-main);
-  position: relative;
-  z-index: 300;
-}
-
 .main-header {
   display: flex;
   justify-content: space-between;
@@ -436,17 +484,6 @@ body.sidebar-open .sidebar {
 
 .view {
   animation: viewFadeIn 0.5s ease-out forwards;
-}
-
-.view-header {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.view-header h2 {
-  font-size: 1.8rem;
-  font-weight: 700;
 }
 
 .view-header p {
@@ -615,7 +652,7 @@ body.sidebar-open .sidebar {
 }
 
 .stat-card-content h3 {
-  font-size: 3rem;
+  font-size: clamp(2.5rem, 8vw, 3rem); /* Fluid Typography */
   font-weight: 700;
   color: var(--accent-primary);
   line-height: 1.1;
@@ -630,7 +667,7 @@ body.sidebar-open .sidebar {
 }
 
 .stat-card-icon {
-    font-size: 3rem;
+    font-size: clamp(2.5rem, 8vw, 3rem); /* Fluid Typography */
     color: var(--accent-primary);
     opacity: 0.5;
 }
@@ -1084,9 +1121,6 @@ body.sidebar-open .sidebar {
   width: auto;
 }
 
-/* --- Responsive Breakpoints --- */
-
-/* Tablet Portrait */
 @media (min-width: 576px) {
   .dashboard-stats {
     grid-template-columns: repeat(2, 1fr);
@@ -1109,7 +1143,6 @@ body.sidebar-open .sidebar {
   }
 }
 
-/* Tablet Landscape & Small Laptops */
 @media (min-width: 768px) {
 
   #courses-container,
@@ -1125,13 +1158,8 @@ body.sidebar-open .sidebar {
     grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
     gap: 1.5rem;
   }
-
-  .view-header h2 {
-    font-size: 2rem;
-  }
 }
 
-/* Desktop and Laptops */
 @media (min-width: 992px) {
   body.sidebar-open .main-content {
       transform: translateX(0);
@@ -1183,14 +1211,12 @@ body.sidebar-open .sidebar {
   }
 }
 
-/* Large Desktops */
 @media (min-width: 1200px) {
   .view-header h2 {
-    font-size: 2.2rem;
+    font-size: clamp(1.8rem, 3vw, 2.2rem);
   }
 }
 
-/* TV and Ultra-Wide Screens */
 @media (min-width: 1921px) {
   body {
     display: flex;
