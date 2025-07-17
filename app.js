@@ -427,7 +427,6 @@ const setupEventListeners = () => {
     window.addEventListener('appinstalled', () => {
         deferredInstallPrompt = null;
         elements.installAppBtn?.classList.add('hidden');
-        // The toast is removed to prevent double notifications. The browser provides its own.
     });
 
     elements.hamburgerBtn?.addEventListener('click', (e) => {
@@ -487,15 +486,15 @@ const setupEventListeners = () => {
 
     elements.changePasswordForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const currentPassword = document.getElementById('change-current-password').value;
         const newPassword = document.getElementById('change-new-password').value;
         elements.changePasswordError.textContent = '';
-        const result = await handleChangePassword(newPassword);
+        const result = await handleChangePassword(currentPassword, newPassword);
         if (result.success) {
             showToast('Password changed successfully!', 'success');
             elements.changePasswordModalOverlay.classList.add('hidden');
         } else {
-            let errorMessage = 'Failed to change password. This action requires recent authentication. Please log out and log back in to change your password.';
-            elements.changePasswordError.textContent = errorMessage;
+            elements.changePasswordError.textContent = result.error;
         }
     });
 
@@ -514,10 +513,6 @@ const setupEventListeners = () => {
         if (target.closest('#install-app-btn')) {
             if (deferredInstallPrompt) {
                 deferredInstallPrompt.prompt();
-                const { outcome } = await deferredInstallPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    console.log('User accepted the A2HS prompt');
-                }
                 deferredInstallPrompt = null;
                 elements.installAppBtn?.classList.add('hidden');
             }
@@ -600,7 +595,6 @@ const setupEventListeners = () => {
         }
         else if (target.matches('#change-password-btn')) {
             elements.changePasswordError.textContent = '';
-            document.getElementById('change-username').value = currentUser.email;
             elements.changePasswordForm.reset();
             elements.changePasswordModalOverlay.classList.remove('hidden');
         }
