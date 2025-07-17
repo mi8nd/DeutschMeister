@@ -41,7 +41,6 @@ body.dark-mode {
   padding: 0;
 }
 
-/* Fluid Root Font Size for Universal Scaling */
 html {
     font-size: clamp(14px, 1.5vw, 16px);
 }
@@ -58,7 +57,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Page-Push Menu Style */
 body.sidebar-open .main-content {
     transform: translateX(260px);
     box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
@@ -70,107 +68,14 @@ body.sidebar-open .main-content {
   display: none !important;
 }
 
-.app-container {
-  height: 100vh;
-  opacity: 0;
-  animation: fadeIn 0.5s ease-out forwards;
-}
-
-.sidebar {
-  background: var(--bg-sidebar);
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.3s ease-in-out;
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 260px;
-  transform: translateX(-100%);
-  z-index: 200;
-}
-
-body.sidebar-open .sidebar {
-  transform: translateX(0);
-}
-
-.main-content {
-  overflow-y: auto;
-  height: 100vh;
-  padding: 1rem;
-  transition: transform 0.3s ease-in-out, border-radius 0.3s ease-in-out;
-  background: var(--bg-main);
-  position: relative;
-  z-index: 300;
-}
-
-.view-header h2 {
-    font-size: clamp(1.5rem, 5vw, 2.2rem); /* Fluid Typography */
-}
-
-/* SMARTWATCH VIEW */
-@media (max-width: 300px) {
-    .main-header,
-    .view-header p,
-    .stat-card,
-    .recent-activity {
-        display: none;
-    }
-
-    .view-header {
-        border: none;
-        text-align: center;
-    }
-
-    .view-header h2 {
-        font-size: 1.2rem;
-    }
-
-    #home-view {
-        padding-top: 2rem;
-    }
-
-    .progress-ring-card {
-        border: none;
-        background: transparent;
-        padding: 0;
-    }
-
-    .progress-ring {
-        width: 180px;
-        height: 180px;
-    }
-
-    .progress-ring__svg {
-        width: 180px;
-        height: 180px;
-    }
-}
-
-/* All other styles remain the same */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes viewFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .animated-card {
@@ -178,7 +83,6 @@ body.sidebar-open .sidebar {
   transform: translateY(20px);
   animation: viewFadeIn 0.5s ease-out forwards;
 }
-
 
 .app-loader {
   display: flex;
@@ -201,9 +105,7 @@ body.sidebar-open .sidebar {
 }
 
 @keyframes rotation {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
 .auth-container {
@@ -226,12 +128,6 @@ body.sidebar-open .sidebar {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 }
 
-@media (min-width: 768px) {
-  .auth-layout {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
 .auth-branding {
   background: linear-gradient(160deg, var(--accent-secondary), var(--accent-primary));
   padding: 4rem;
@@ -242,35 +138,11 @@ body.sidebar-open .sidebar {
   text-align: center;
 }
 
-@media (min-width: 768px) {
-  .auth-branding {
-    display: flex;
-  }
-}
-
-.auth-branding .logo {
-  font-size: 3rem;
-  color: #fff;
-  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.auth-branding p {
-  font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.9);
-  margin-top: 1rem;
-}
-
 .auth-form-container {
   padding: 2rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
-}
-
-@media (min-width: 768px) {
-  .auth-form-container {
-    padding: 4rem;
-  }
 }
 
 .auth-form h2 {
@@ -280,11 +152,8 @@ body.sidebar-open .sidebar {
   text-align: center;
 }
 
-.form-description {
-  color: var(--text-secondary);
-  margin-bottom: 1.5rem;
+.form-description, .toggle-form-text, .forgot-password-text {
   text-align: center;
-  line-height: 1.4;
 }
 
 .input-group {
@@ -312,40 +181,18 @@ body.sidebar-open .sidebar {
 }
 
 .error-message {
-  text-align: center;
   color: var(--error-color);
   min-height: 1rem;
   margin-bottom: 1rem;
 }
 
-.toggle-form-text {
-  text-align: center;
-  margin-top: 1.5rem;
-}
-
-.toggle-form-text a {
+.toggle-form-text a, .forgot-password-text a {
   color: var(--accent-secondary);
   font-weight: 600;
   text-decoration: none;
 }
 
-.toggle-form-text a:hover {
-  text-decoration: underline;
-}
-
-.forgot-password-text {
-  text-align: right;
-  font-size: 0.9rem;
-  margin-top: -0.75rem;
-  margin-bottom: 1rem;
-}
-
-.forgot-password-text a {
-  color: var(--accent-secondary);
-  text-decoration: none;
-}
-
-.forgot-password-text a:hover {
+.toggle-form-text a:hover, .forgot-password-text a:hover {
   text-decoration: underline;
 }
 
@@ -392,6 +239,31 @@ body.sidebar-open .sidebar {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+
+.app-container {
+  height: 100vh;
+  opacity: 0;
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.sidebar {
+  background: var(--bg-sidebar);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease-in-out;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 260px;
+  transform: translateX(-100%);
+  z-index: 200;
+}
+
+body.sidebar-open .sidebar {
+  transform: translateX(0);
 }
 
 .sidebar-header {
@@ -465,6 +337,16 @@ body.sidebar-open .sidebar {
   opacity: 0.9;
 }
 
+.main-content {
+  overflow-y: auto;
+  height: 100vh;
+  padding: 1rem;
+  transition: transform 0.3s ease-in-out, border-radius 0.3s ease-in-out;
+  background: var(--bg-main);
+  position: relative;
+  z-index: 300;
+}
+
 .main-header {
   display: flex;
   justify-content: space-between;
@@ -484,6 +366,14 @@ body.sidebar-open .sidebar {
 
 .view {
   animation: viewFadeIn 0.5s ease-out forwards;
+}
+
+.view-header {
+  margin-bottom: 1.5rem;
+}
+
+.view-header h2 {
+    font-size: clamp(1.5rem, 5vw, 2.2rem);
 }
 
 .view-header p {
@@ -652,7 +542,7 @@ body.sidebar-open .sidebar {
 }
 
 .stat-card-content h3 {
-  font-size: clamp(2.5rem, 8vw, 3rem); /* Fluid Typography */
+  font-size: clamp(2.5rem, 8vw, 3rem);
   font-weight: 700;
   color: var(--accent-primary);
   line-height: 1.1;
@@ -667,7 +557,7 @@ body.sidebar-open .sidebar {
 }
 
 .stat-card-icon {
-    font-size: clamp(2.5rem, 8vw, 3rem); /* Fluid Typography */
+    font-size: clamp(2.5rem, 8vw, 3rem);
     color: var(--accent-primary);
     opacity: 0.5;
 }
@@ -1052,31 +942,14 @@ body.sidebar-open .sidebar {
 }
 
 @keyframes slideUp {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 @keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-
-  90% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  to {
-    opacity: 0;
-    transform: translateY(20px);
-  }
+  from { opacity: 1; }
+  90% { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(20px); }
 }
 
 .modal-overlay {
@@ -1130,11 +1003,7 @@ body.sidebar-open .sidebar {
     padding: 1.5rem;
   }
 
-  .settings-options {
-    flex-direction: row;
-  }
-
-  .quiz-results-actions {
+  .settings-options, .quiz-results-actions {
     flex-direction: row;
   }
 
@@ -1144,7 +1013,6 @@ body.sidebar-open .sidebar {
 }
 
 @media (min-width: 768px) {
-
   #courses-container,
   #quizzes-container {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -1208,25 +1076,5 @@ body.sidebar-open .sidebar {
 
   #video-list {
     height: auto;
-  }
-}
-
-@media (min-width: 1200px) {
-  .view-header h2 {
-    font-size: clamp(1.8rem, 3vw, 2.2rem);
-  }
-}
-
-@media (min-width: 1921px) {
-  body {
-    display: flex;
-    justify-content: center;
-  }
-
-  .app-container {
-    max-width: 1920px;
-    width: 100%;
-    border-left: 1px solid var(--border-color);
-    border-right: 1px solid var(--border-color);
   }
 }
