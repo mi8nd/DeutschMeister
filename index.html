@@ -281,9 +281,12 @@
   <div id="change-password-modal-overlay" class="modal-overlay hidden">
     <div class="modal-box">
       <h3>Change Password</h3>
-      <p>Enter your new password below. For security, this action may require you to log in again if your session is old.</p>
+      <p>For your security, please confirm your current password before choosing a new one.</p>
       <form id="change-password-form" class="modal-form">
-        <input type="text" id="change-username" class="hidden" autocomplete="username">
+        <div class="input-group">
+          <label for="change-current-password">Current Password</label>
+          <input type="password" id="change-current-password" required autocomplete="current-password">
+        </div>
         <div class="input-group">
           <label for="change-new-password">New Password</label>
           <input type="password" id="change-new-password" minlength="6" required autocomplete="new-password">
