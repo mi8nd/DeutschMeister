@@ -508,6 +508,7 @@ const setupEventListeners = () => {
 
         const target = e.target;
         const navLink = target.closest('.nav-link');
+        const footerLink = target.closest('.footer-link');
         const continueCard = target.closest('.continue-watching-card');
 
         if (target.closest('#install-app-btn')) {
@@ -520,9 +521,10 @@ const setupEventListeners = () => {
         else if (target.matches('#show-login')) { e.preventDefault(); showAuthForm('login-form'); }
         else if (target.matches('#forgot-password-link')) { e.preventDefault(); showAuthForm('forgot-password-form'); }
         else if (target.matches('#back-to-login')) { e.preventDefault(); showAuthForm('login-form'); }
-        else if (navLink) {
+        else if (navLink || (footerLink && footerLink.getAttribute('href').startsWith('#'))) {
             e.preventDefault();
-            handleNavigation(navLink.getAttribute('href'));
+            const link = navLink || footerLink;
+            handleNavigation(link.getAttribute('href'));
             if (window.innerWidth <= 992) closeMobileMenu();
         }
         else if (continueCard) {
@@ -601,7 +603,7 @@ const setupEventListeners = () => {
         else if (target === elements.changePasswordModalOverlay || target.matches('#cancel-change-password-btn')) { elements.changePasswordModalOverlay.classList.add('hidden'); }
     });
 
-    // DEFINITIVE FIX: Hides install button if app is already installed
+    // Hides install button if app is already installed
     if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
         elements.installAppBtn?.classList.add('hidden');
     }
