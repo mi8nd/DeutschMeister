@@ -1,4 +1,4 @@
-const CACHE_NAME = 'DeutschMeister-v2'; // A new version to force update
+const CACHE_NAME = 'DeutschMeister-v3'; // A new version to force update
 const CORE_ASSETS = [
     '/',
     'index.html',
@@ -42,27 +42,40 @@ self.addEventListener('activate', (event) => {
 
 // On fetch, apply the correct caching strategy
 self.addEventListener('fetch', (event) => {
-    const requestUrl = new URL(event.request.url);
+    const { request } = event;
 
-    // STRATEGY 1: Network Only for APIs.
-    // If the request is for an external API (Google, Firebase), always go to the network.
+    // Strategy 1: Network Only for APIs and non-GET requests.
     // This is the definitive fix for the 403 error.
-    if (requestUrl.hostname !== self.location.hostname) {
-        event.respondWith(fetch(event.request));
+    if (request.url.startsWith('https://www.googleapis.com') || request.method !== 'GET') {
+        return;
+    }
+    
+    // Strategy 2: Network First, Cache Second for main HTML page navigation.
+    // This ensures the user always gets the latest UI.
+    if (request.mode === 'navigate') {
+        event.respondWith(
+            fetch(request)
+                .then(response => {
+                    const responseToCache = response.clone();
+                    caches.open(CACHE_NAME).then(cache => {
+                        cache.put(request, responseToCache);
+                    });
+                    return response;
+                })
+                .catch(() => caches.match(request))
+        );
         return;
     }
 
-    // STRATEGY 2: Stale-While-Revalidate for core assets.
+    // Strategy 3: Stale-While-Revalidate for all other assets (CSS, JS, Fonts, etc.).
     // This makes the app load instantly from cache, then updates in the background.
     event.respondWith(
         caches.open(CACHE_NAME).then((cache) => {
-            return cache.match(event.request).then((cachedResponse) => {
-                const fetchPromise = fetch(event.request).then((networkResponse) => {
-                    cache.put(event.request, networkResponse.clone());
+            return cache.match(request).then((cachedResponse) => {
+                const fetchPromise = fetch(request).then((networkResponse) => {
+                    cache.put(request, networkResponse.clone());
                     return networkResponse;
                 });
-
-                // Return the cached response immediately if available, otherwise wait for the network
                 return cachedResponse || fetchPromise;
             });
         })
