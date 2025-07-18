@@ -4,6 +4,7 @@ import { auth, db } from './firebase.js';
 import { handleSignUp, handleLogin, handleLogout, handleLogoutAndReset, handleDeleteAccount, handlePasswordReset, handleVerifyPasswordResetCode, handleConfirmPasswordReset, handleChangePassword } from './auth.js';
 import { fetchPlaylistVideoCounts, fetchAndCacheAllVideos, PLAYLISTS } from './youtube.js';
 import { quizData } from './quiz.js';
+import { translations } from './translations.js';
 
 // Global State
 let courseData = {}, currentUser = null, userProgress = {}, currentLevel = null;
@@ -29,6 +30,20 @@ const applyTheme = (theme) => {
     if (toggleIcon) {
         toggleIcon.textContent = theme === 'dark' ? 'light_mode' : 'dark_mode';
     }
+};
+
+// Language and Translation Logic
+const setLanguage = (lang) => {
+    localStorage.setItem('language', lang);
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+
+    document.querySelectorAll('[data-translate-key]').forEach(el => {
+        const key = el.dataset.translateKey;
+        if (translations[lang] && translations[lang][key]) {
+            el.textContent = translations[lang][key];
+        }
+    });
 };
 
 const handleNavigation = (hash, updateHistory = true) => {
@@ -360,7 +375,7 @@ const renderContinueWatching = () => {
     inProgressVideos.sort((a, b) => b.timestamp - a.timestamp);
     const recentVideos = inProgressVideos.slice(0, 5);
     if (recentVideos.length === 0) {
-        activityList.innerHTML = '<p class="empty-state">No recent activity. Start a lesson to see it here!</p>';
+        activityList.innerHTML = '<p class="empty-state" data-translate-key="noRecentActivity">No recent activity. Start a lesson to see it here!</p>';
         return;
     }
     recentVideos.forEach(video => {
@@ -408,7 +423,7 @@ const updateUIForGuest = () => {
 };
 
 const cacheDOMElements = () => {
-    const ids = ['app-loader', 'auth-container', 'app-container', 'toast-container', 'login-form', 'signup-form', 'forgot-password-form', 'logout-btn', 'dark-mode-toggle', 'logout-modal-overlay', 'confirm-logout-btn', 'cancel-logout-btn', 'reset-progress-checkbox', 'reset-course-modal-overlay', 'reset-course-confirm-text', 'confirm-reset-btn', 'cancel-reset-btn', 'youtube-player-container', 'video-list', 'welcome-message', 'profile-name', 'profile-email', 'delete-account-btn', 'delete-account-modal-overlay', 'cancel-delete-btn', 'confirm-delete-btn', 'change-password-btn', 'password-reset-view', 'password-reset-form', 'change-password-modal-overlay', 'change-password-form', 'cancel-change-password-btn', 'change-password-error', 'sidebar', 'hamburger-btn', 'close-sidebar-btn', 'install-app-btn', 'reset-all-progress-btn', 'reset-all-modal-overlay', 'cancel-reset-all-btn', 'confirm-reset-all-btn', 'pfp-upload-input', 'pfp-container', 'faq-view', 'terms-view', 'privacy-view', 'accessibility-view'];
+    const ids = ['app-loader', 'auth-container', 'app-container', 'toast-container', 'login-form', 'signup-form', 'forgot-password-form', 'logout-btn', 'dark-mode-toggle', 'logout-modal-overlay', 'confirm-logout-btn', 'cancel-logout-btn', 'reset-progress-checkbox', 'reset-course-modal-overlay', 'reset-course-confirm-text', 'confirm-reset-btn', 'cancel-reset-btn', 'youtube-player-container', 'video-list', 'welcome-message', 'profile-name', 'profile-email', 'delete-account-btn', 'delete-account-modal-overlay', 'cancel-delete-btn', 'confirm-delete-btn', 'change-password-btn', 'password-reset-view', 'password-reset-form', 'change-password-modal-overlay', 'change-password-form', 'cancel-change-password-btn', 'change-password-error', 'sidebar', 'hamburger-btn', 'close-sidebar-btn', 'install-app-btn', 'reset-all-progress-btn', 'reset-all-modal-overlay', 'cancel-reset-all-btn', 'confirm-reset-all-btn', 'pfp-upload-input', 'pfp-container', 'faq-view', 'terms-view', 'privacy-view', 'accessibility-view', 'lang-toggle-btn', 'lang-dropdown'];
     ids.forEach(id => {
         const camelCaseId = id.replace(/-(\w)/g, (_, c) => c.toUpperCase());
         elements[camelCaseId] = document.getElementById(id);
@@ -437,6 +452,18 @@ const setupEventListeners = () => {
     elements.closeSidebarBtn?.addEventListener('click', closeMobileMenu);
     
     window.addEventListener('hashchange', () => handleNavigation(window.location.hash, false));
+
+    elements.langToggleBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        elements.langDropdown.classList.toggle('hidden');
+    });
+
+    elements.langDropdown?.addEventListener('click', (e) => {
+        if (e.target.classList.contains('lang-option')) {
+            setLanguage(e.target.dataset.lang);
+            elements.langDropdown.classList.add('hidden');
+        }
+    });
 
     elements.loginForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -504,6 +531,10 @@ const setupEventListeners = () => {
     document.body.addEventListener('click', async (e) => {
         if (document.body.classList.contains('sidebar-open') && !e.target.closest('.sidebar')) {
             closeMobileMenu();
+        }
+
+        if (!e.target.closest('.lang-toggle-container')) {
+            elements.langDropdown?.classList.add('hidden');
         }
 
         const target = e.target;
@@ -659,6 +690,8 @@ const initializeApp = async () => {
 document.addEventListener('DOMContentLoaded', () => {
     const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     applyTheme(savedTheme);
+    const savedLang = localStorage.getItem('language') || 'en';
+    setLanguage(savedLang);
     cacheDOMElements();
     setupEventListeners();
     handleActionCodes();
