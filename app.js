@@ -40,6 +40,8 @@ const setLanguage = (lang) => {
         const key = el.dataset.translateKey;
         if (translations[lang] && translations[lang][key]) {
             el.textContent = translations[lang][key];
+        } else if (translations['en'] && translations['en'][key]) {
+            el.textContent = translations['en'][key];
         }
     });
 };
@@ -86,11 +88,9 @@ const getPlaylistFromCache = (level) => {
     return videosForLevel;
 };
 
-// Mobile Menu Logic
 const openMobileMenu = () => document.body.classList.add('sidebar-open');
 const closeMobileMenu = () => document.body.classList.remove('sidebar-open');
 
-// Smart Avatar Generation
 const generateInitialsAvatar = (displayName) => {
     if (!displayName) {
         const defaultAvatar = document.createElement('span');
@@ -112,7 +112,6 @@ const generateInitialsAvatar = (displayName) => {
     return avatarDiv;
 };
 
-// Direct Profile Picture Upload & Resize
 async function handleProfilePictureUpload(e) {
     const file = e.target.files[0];
     if (!file || !currentUser) return;
@@ -160,7 +159,6 @@ async function handleProfilePictureUpload(e) {
     e.target.value = '';
 }
 
-// Quiz Logic
 const startQuiz = (level) => {
     currentLevel = level;
     currentQuiz = quizData[level] || [];
@@ -209,7 +207,6 @@ const showQuizResults = () => {
     document.getElementById('quiz-score').textContent = `You scored ${score} out of ${currentQuiz.length}`;
 };
 
-// Video Player Logic
 const saveTimestamp = async (videoId, time) => {
     if (!currentUser || time < 1) return;
     if (!userProgress.timestamps) userProgress.timestamps = {};
@@ -236,7 +233,6 @@ const loadVideo = (videoId) => {
     document.querySelectorAll('.video-item').forEach(item => item.classList.toggle('active', item.dataset.videoId === videoId));
 };
 
-// Rendering Functions
 const renderUserDashboard = () => {
     elements.welcomeMessage.textContent = `Welcome back, ${currentUser.displayName || 'User'}!`;
     const progressValues = Object.values(userProgress.progress || {});
@@ -393,6 +389,13 @@ const renderContinueWatching = () => {
                 </div>
             </div>`;
         activityList.appendChild(card);
+    });
+};
+
+const promptForPassword = () => {
+    return new Promise((resolve) => {
+        const password = prompt("For your security, please enter your password to confirm this action:");
+        resolve(password);
     });
 };
 
@@ -571,12 +574,8 @@ const setupEventListeners = () => {
             showView('video-player');
             elements.videoList.innerHTML = '<div class="spinner"></div>';
             currentPlaylist = getPlaylistFromCache(currentLevel);
-            if (currentPlaylist.length) {
-                renderVideoList();
-                loadVideo(continueCard.dataset.videoId);
-            } else {
-                elements.videoList.innerHTML = '<p>Could not load videos.</p>';
-            }
+            if (currentPlaylist.length) { renderVideoList(); loadVideo(continueCard.dataset.videoId); }
+            else { elements.videoList.innerHTML = '<p>Could not load videos.</p>'; }
         }
         else if (target.matches('.start-course-btn')) {
             currentLevel = target.dataset.level;
@@ -584,12 +583,8 @@ const setupEventListeners = () => {
             showView('video-player');
             elements.videoList.innerHTML = '<div class="spinner"></div>';
             currentPlaylist = getPlaylistFromCache(currentLevel);
-            if (currentPlaylist.length) {
-                renderVideoList();
-                loadVideo(currentPlaylist[0].videoId);
-            } else {
-                elements.videoList.innerHTML = '<p>Could not load videos.</p>';
-            }
+            if (currentPlaylist.length) { renderVideoList(); loadVideo(currentPlaylist[0].videoId); }
+            else { elements.videoList.innerHTML = '<p>Could not load videos.</p>'; }
         }
         else if (target.matches('#back-to-courses-btn')) { showView('courses'); }
         else if (target.closest('.video-item') && !target.matches('.complete-btn')) { loadVideo(target.closest('.video-item').dataset.videoId); }
@@ -625,12 +620,29 @@ const setupEventListeners = () => {
             resetAllProgress();
             elements.resetAllModalOverlay.classList.add('hidden');
         }
-        else if (target.matches('#delete-account-btn')) { elements.deleteAccountModalOverlay.classList.remove('hidden'); }
+        else if (target.matches('#delete-account-btn')) {
+             if (currentUser.providerData.some(p => p.providerId === 'google.com')) {
+                // For Google users, we can't prompt for a password they don't have.
+                // We ask for a simple confirmation instead.
+                if (confirm("Are you sure you want to permanently delete your account? This action cannot be undone.")) {
+                    const result = await handleDeleteAccount();
+                    if (!result.success) showToast(`Error: ${result.error}`, 'error');
+                }
+            } else {
+                elements.deleteAccountModalOverlay.classList.remove('hidden');
+            }
+        }
         else if (target === elements.deleteAccountModalOverlay || target.matches('#cancel-delete-btn')) { elements.deleteAccountModalOverlay.classList.add('hidden'); }
         else if (target.matches('#confirm-delete-btn')) {
-            const result = await handleDeleteAccount();
-            if (result.success) showToast('Account deleted successfully.', 'info');
-            else showToast(`Error: ${result.error}`, 'error');
+            const password = await promptForPassword();
+            if (password) {
+                const result = await handleDeleteAccount(password);
+                if (result.success) {
+                    showToast('Account deleted successfully.', 'info');
+                } else {
+                    showToast(`Error: ${result.error}`, 'error');
+                }
+            }
             elements.deleteAccountModalOverlay.classList.add('hidden');
         }
         else if (target.matches('#change-password-btn')) {
@@ -686,7 +698,9 @@ const initializeApp = async () => {
             if (userDoc.exists()) {
                 updateUIForUser(user, userDoc.data());
             } else {
-                await handleLogout();
+                await ensureUserDocument(user); // Ensure doc exists for social sign-ins
+                const freshDoc = await getDoc(doc(db, "users", user.uid));
+                updateUIForUser(user, freshDoc.data());
             }
         } else {
             updateUIForGuest();
