@@ -57,6 +57,7 @@ body {
   overflow-x: hidden;
 }
 
+/* Page-Push Menu Style */
 body.sidebar-open .main-content {
     transform: translateX(260px);
     box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
@@ -992,6 +993,128 @@ body.sidebar-open .sidebar {
 .modal-actions .btn-secondary,
 .modal-actions .btn-danger {
   width: auto;
+}
+
+/* --- FAQ View --- */
+.faq-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.faq-item {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    transition: background-color 0.2s ease;
+}
+
+.faq-item[open] {
+    background-color: color-mix(in srgb, var(--accent-secondary) 5%, var(--bg-surface));
+}
+
+.faq-item summary {
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.faq-item summary::after {
+    content: '+';
+    font-size: 1.5rem;
+    font-weight: 400;
+    transition: transform 0.2s ease-in-out;
+}
+
+.faq-item[open] summary::after {
+    transform: rotate(45deg);
+}
+
+.faq-item p {
+    padding: 0 1.5rem 1.5rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+/* --- Site Footer --- */
+.site-footer {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.footer-link {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+    color: var(--accent-secondary);
+    text-decoration: underline;
+}
+
+.footer-copyright {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+
+/* --- Responsive Breakpoints --- */
+
+@media (max-width: 320px) {
+    .main-header,
+    .view-header p,
+    .stat-card,
+    .recent-activity {
+        display: none;
+    }
+
+    .view-header {
+        border: none;
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    .view-header h2 {
+        font-size: 1.2rem;
+    }
+
+    #home-view {
+        padding-top: 1rem;
+    }
+
+    .progress-ring-card {
+        border: none;
+        background: transparent;
+        padding: 0;
+    }
+
+    .progress-ring {
+        width: 150px;
+        height: 150px;
+    }
+
+    .progress-ring__svg {
+        width: 150px;
+        height: 150px;
+    }
 }
 
 @media (min-width: 576px) {
