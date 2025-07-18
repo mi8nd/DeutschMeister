@@ -53,12 +53,11 @@ self.addEventListener('fetch', (event) => {
   }
   
   // Strategy 2: Network First for the main HTML file.
-  // This ensures the user always gets the latest page structure on refresh.
+  // This ensures the user always gets the latest page structure.
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
         .then(response => {
-          // If successful, clone it and put it in the dynamic cache.
           const copy = response.clone();
           caches.open(DYNAMIC_CACHE_NAME).then(cache => {
             cache.put(request.url, copy);
@@ -75,7 +74,6 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(request).then(cacheRes => {
       return cacheRes || fetch(request).then(fetchRes => {
-        // If the asset is not in the cache, fetch it and cache it dynamically.
         return caches.open(DYNAMIC_CACHE_NAME).then(cache => {
           cache.put(request.url, fetchRes.clone());
           return fetchRes;
