@@ -7,10 +7,33 @@ import {
     sendPasswordResetEmail,
     confirmPasswordReset,
     verifyPasswordResetCode,
-    updatePassword
+    updatePassword,
+    reauthenticateWithCredential,
+    EmailAuthProvider,
+    GoogleAuthProvider,
+    signInWithPopup
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-import { doc, setDoc, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 import { auth, db } from './firebase.js';
+
+// Checks if a user document exists and creates one if it doesn't.
+async function ensureUserDocument(user) {
+    const userDocRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userDocRef);
+    if (!userDoc.exists()) {
+        await setDoc(userDocRef, {
+            uid: user.uid,
+            displayName: user.displayName,
+            email: user.email,
+            createdAt: new Date(),
+            photoURL: user.photoURL,
+            progress: { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0 },
+            timestamps: {},
+            quizScores: {}
+        });
+    }
+    return { success: true };
+}
 
 async function handleSignUp(name, email, password) {
     let user = null;
@@ -18,17 +41,7 @@ async function handleSignUp(name, email, password) {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         user = userCredential.user;
         await updateProfile(user, { displayName: name });
-        const userDocRef = doc(db, "users", user.uid);
-        await setDoc(userDocRef, {
-            uid: user.uid,
-            displayName: name,
-            email: user.email,
-            createdAt: new Date(),
-            photoURL: null,
-            progress: { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0 },
-            timestamps: {},
-            quizScores: {}
-        });
+        await ensureUserDocument(user);
         return { success: true, user };
     } catch (error) {
         if (user) {
@@ -43,6 +56,18 @@ async function handleLogin(email, password) {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         return { success: true, user: userCredential.user };
     } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
+async function handleGoogleSignIn() {
+    const provider = new GoogleAuthProvider();
+    try {
+        const result = await signInWithPopup(auth, provider);
+        await ensureUserDocument(result.user);
+        return { success: true, user: result.user };
+    } catch (error) {
+        console.error("Google Sign-In failed:", error);
         return { success: false, error: error.message };
     }
 }
@@ -119,19 +144,24 @@ async function handleConfirmPasswordReset(code, newPassword) {
     }
 }
 
-async function handleChangePassword(newPassword) {
+async function handleChangePassword(currentPassword, newPassword) {
     try {
         const user = auth.currentUser;
         if (!user) throw new Error('No user is currently logged in.');
+        const credential = EmailAuthProvider.credential(user.email, currentPassword);
+        await reauthenticateWithCredential(user, credential);
         await updatePassword(user, newPassword);
         return { success: true };
     } catch (error) {
-        return { success: false, error: error.message };
+        if (error.code === 'auth/wrong-password') {
+            return { success: false, error: 'Incorrect current password. Please try again.' };
+        }
+        return { success: false, error: 'Failed to change password. Please try again.' };
     }
 }
 
 export {
     handleSignUp, handleLogin, handleLogout, handleLogoutAndReset,
     handleDeleteAccount, handlePasswordReset, handleVerifyPasswordResetCode,
-    handleConfirmPasswordReset, handleChangePassword
+    handleConfirmPasswordReset, handleChangePassword, handleGoogleSignIn
 };
