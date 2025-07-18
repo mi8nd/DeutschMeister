@@ -1,7 +1,7 @@
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 import { auth, db } from './firebase.js';
-import { handleSignUp, handleLogin, handleLogout, handleLogoutAndReset, handleDeleteAccount, handlePasswordReset, handleVerifyPasswordResetCode, handleConfirmPasswordReset, handleChangePassword } from './auth.js';
+import { handleSignUp, handleLogin, handleLogout, handleLogoutAndReset, handleDeleteAccount, handlePasswordReset, handleVerifyPasswordResetCode, handleConfirmPasswordReset, handleChangePassword, handleGoogleSignIn } from './auth.js';
 import { fetchPlaylistVideoCounts, fetchAndCacheAllVideos, PLAYLISTS } from './youtube.js';
 import { quizData } from './quiz.js';
 import { translations } from './translations.js';
@@ -32,12 +32,10 @@ const applyTheme = (theme) => {
     }
 };
 
-// Language and Translation Logic
 const setLanguage = (lang) => {
     localStorage.setItem('language', lang);
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-
     document.querySelectorAll('[data-translate-key]').forEach(el => {
         const key = el.dataset.translateKey;
         if (translations[lang] && translations[lang][key]) {
@@ -88,11 +86,9 @@ const getPlaylistFromCache = (level) => {
     return videosForLevel;
 };
 
-// Mobile Menu Logic
 const openMobileMenu = () => document.body.classList.add('sidebar-open');
 const closeMobileMenu = () => document.body.classList.remove('sidebar-open');
 
-// Smart Avatar Generation
 const generateInitialsAvatar = (displayName) => {
     if (!displayName) {
         const defaultAvatar = document.createElement('span');
@@ -114,7 +110,6 @@ const generateInitialsAvatar = (displayName) => {
     return avatarDiv;
 };
 
-// Direct Profile Picture Upload & Resize
 async function handleProfilePictureUpload(e) {
     const file = e.target.files[0];
     if (!file || !currentUser) return;
@@ -162,7 +157,6 @@ async function handleProfilePictureUpload(e) {
     e.target.value = '';
 }
 
-// Quiz Logic
 const startQuiz = (level) => {
     currentLevel = level;
     currentQuiz = quizData[level] || [];
@@ -211,7 +205,6 @@ const showQuizResults = () => {
     document.getElementById('quiz-score').textContent = `You scored ${score} out of ${currentQuiz.length}`;
 };
 
-// Video Player Logic
 const saveTimestamp = async (videoId, time) => {
     if (!currentUser || time < 1) return;
     if (!userProgress.timestamps) userProgress.timestamps = {};
@@ -238,7 +231,6 @@ const loadVideo = (videoId) => {
     document.querySelectorAll('.video-item').forEach(item => item.classList.toggle('active', item.dataset.videoId === videoId));
 };
 
-// Rendering Functions
 const renderUserDashboard = () => {
     elements.welcomeMessage.textContent = `Welcome back, ${currentUser.displayName || 'User'}!`;
     const progressValues = Object.values(userProgress.progress || {});
@@ -532,7 +524,7 @@ const setupEventListeners = () => {
         if (document.body.classList.contains('sidebar-open') && !e.target.closest('.sidebar')) {
             closeMobileMenu();
         }
-
+        
         if (!e.target.closest('.lang-toggle-container')) {
             elements.langDropdown?.classList.add('hidden');
         }
@@ -541,8 +533,17 @@ const setupEventListeners = () => {
         const navLink = target.closest('.nav-link');
         const footerLink = target.closest('.footer-link');
         const continueCard = target.closest('.continue-watching-card');
+        const socialBtn = target.closest('.btn-social');
 
-        if (target.closest('#install-app-btn')) {
+        if (socialBtn) {
+            const provider = socialBtn.dataset.provider;
+            if (provider === 'google') {
+                const result = await handleGoogleSignIn();
+                if (!result.success) {
+                    showToast('Failed to sign in with Google.', 'error');
+                }
+            }
+        } else if (target.closest('#install-app-btn')) {
             if (deferredInstallPrompt) {
                 deferredInstallPrompt.prompt();
                 deferredInstallPrompt = null;
