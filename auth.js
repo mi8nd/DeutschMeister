@@ -104,8 +104,15 @@ async function handleDeleteAccount(password) {
         return { success: false, error: "No user is logged in." };
     }
     try {
-        const credential = EmailAuthProvider.credential(user.email, password);
-        await reauthenticateWithCredential(user, credential);
+        // For email/password users, we need to re-authenticate.
+        // Google Sign-in users might not have a password.
+        if (user.providerData.some(p => p.providerId === 'password')) {
+            if (!password) {
+                 return { success: false, error: "Password is required for this action." };
+            }
+            const credential = EmailAuthProvider.credential(user.email, password);
+            await reauthenticateWithCredential(user, credential);
+        }
         
         const userDocRef = doc(db, "users", user.uid);
         await deleteDoc(userDocRef);
@@ -116,10 +123,10 @@ async function handleDeleteAccount(password) {
         if (error.code === 'auth/wrong-password') {
             return { success: false, error: "Incorrect password. Account not deleted." };
         }
+        console.error("Account deletion failed:", error);
         return { success: false, error: "An error occurred during account deletion." };
     }
 }
-
 
 async function handlePasswordReset(email) {
     try {
