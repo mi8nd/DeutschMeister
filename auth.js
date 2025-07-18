@@ -13,10 +13,9 @@ import {
     GoogleAuthProvider,
     signInWithPopup
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { doc, setDoc, getDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 import { auth, db } from './firebase.js';
 
-// Checks if a user document exists and creates one if it doesn't.
 async function ensureUserDocument(user) {
     const userDocRef = doc(db, "users", user.uid);
     const userDoc = await getDoc(userDocRef);
@@ -99,19 +98,28 @@ async function handleLogoutAndReset() {
     }
 }
 
-async function handleDeleteAccount() {
+async function handleDeleteAccount(password) {
+    const user = auth.currentUser;
+    if (!user) {
+        return { success: false, error: "No user is logged in." };
+    }
     try {
-        const user = auth.currentUser;
-        if (user) {
-            const userDocRef = doc(db, "users", user.uid);
-            await deleteDoc(userDocRef);
-            await deleteUser(user);
-        }
+        const credential = EmailAuthProvider.credential(user.email, password);
+        await reauthenticateWithCredential(user, credential);
+        
+        const userDocRef = doc(db, "users", user.uid);
+        await deleteDoc(userDocRef);
+        await deleteUser(user);
+        
         return { success: true };
     } catch (error) {
-        return { success: false, error: error.message };
+        if (error.code === 'auth/wrong-password') {
+            return { success: false, error: "Incorrect password. Account not deleted." };
+        }
+        return { success: false, error: "An error occurred during account deletion." };
     }
 }
+
 
 async function handlePasswordReset(email) {
     try {
