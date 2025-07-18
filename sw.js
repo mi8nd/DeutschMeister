@@ -1,7 +1,6 @@
 const STATIC_CACHE_NAME = 'DeutschMeister-static-v1';
 const DYNAMIC_CACHE_NAME = 'DeutschMeister-dynamic-v1';
 
-// These are the core files that make the app shell work offline immediately.
 const CORE_ASSETS = [
   '/',
   'index.html',
@@ -18,7 +17,6 @@ const CORE_ASSETS = [
   'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0'
 ];
 
-// On install, pre-cache the core assets.
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE_NAME).then((cache) => {
@@ -29,7 +27,6 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// On activate, clean up old caches.
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -41,19 +38,14 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// On fetch, apply caching strategies.
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Strategy 1: Ignore all non-GET requests and external API calls.
-  // This lets the browser handle them directly, preserving headers.
   if (request.method !== 'GET' || url.origin !== self.location.origin) {
     return;
   }
   
-  // Strategy 2: Network First for the main HTML file.
-  // This ensures the user always gets the latest page structure.
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -64,13 +56,11 @@ self.addEventListener('fetch', (event) => {
           });
           return response;
         })
-        .catch(() => caches.match(request.url)) // Fallback to cache if offline
+        .catch(() => caches.match(request.url))
     );
     return;
   }
 
-  // Strategy 3: Cache First for all other static assets (CSS, JS, Fonts, etc.).
-  // This makes the app load instantly.
   event.respondWith(
     caches.match(request).then(cacheRes => {
       return cacheRes || fetch(request).then(fetchRes => {
