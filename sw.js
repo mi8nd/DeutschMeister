@@ -1,7 +1,7 @@
 const STATIC_CACHE_NAME = 'DeutschMeister-static-v1';
 const DYNAMIC_CACHE_NAME = 'DeutschMeister-dynamic-v1';
 
-// These are the core files that make the app shell work.
+// These are the core files that make the app shell work offline immediately.
 const CORE_ASSETS = [
   '/',
   'index.html',
@@ -11,7 +11,9 @@ const CORE_ASSETS = [
   'firebase.js',
   'quiz.js',
   'youtube.js',
+  'translations.js',
   'icon.png',
+  '/assets/google-logo.svg',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
   'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0'
 ];
@@ -44,15 +46,15 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Strategy 1: Ignore all non-GET requests and API calls.
+  // Strategy 1: Ignore all non-GET requests and external API calls.
   // This lets the browser handle them directly, preserving headers.
   if (request.method !== 'GET' || url.origin !== self.location.origin) {
     return;
   }
   
   // Strategy 2: Network First for the main HTML file.
-  // This ensures the user always gets the latest page structure.
-  if (request.headers.get('Accept').includes('text/html')) {
+  // This ensures the user always gets the latest page structure on refresh.
+  if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
         .then(response => {
