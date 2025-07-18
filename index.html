@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <title>DeutschMeister</title>
@@ -17,7 +16,6 @@
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0" />
 </head>
-
 <body class="app-layout">
   <div id="app-loader" class="app-loader"><div class="spinner"></div></div>
   <div id="toast-container"></div>
@@ -31,6 +29,12 @@
           <div class="input-group"><label for="login-password" data-translate-key="password">Password</label><input type="password" id="login-password" required autocomplete="current-password"></div>
           <p class="forgot-password-text"><a href="#" id="forgot-password-link" data-translate-key="forgotPassword">Forgot Password?</a></p>
           <p id="login-error" class="error-message"></p><button type="submit" class="btn btn-primary" data-translate-key="login">Login</button>
+          <div class="form-divider" data-content="or"></div>
+          <div class="social-login-buttons">
+            <button type="button" class="btn-social" data-provider="google"><img src="/assets/google-logo.svg" alt="Google"> <span data-translate-key="continueWithGoogle">Continue with Google</span></button>
+            <button type="button" class="btn-social" data-provider="facebook"><img src="/assets/facebook-logo.svg" alt="Facebook"> <span data-translate-key="continueWithFacebook">Continue with Facebook</span></button>
+            <button type="button" class="btn-social" data-provider="microsoft"><img src="/assets/microsoft-logo.svg" alt="Microsoft"> <span data-translate-key="continueWithMicrosoft">Continue with Microsoft</span></button>
+          </div>
           <p class="toggle-form-text" data-translate-key="noAccount">No account? <a href="#" id="show-signup" data-translate-key="signUp">Sign up</a></p>
         </form>
         <form id="signup-form" class="auth-form hidden">
@@ -39,6 +43,12 @@
           <div class="input-group"><label for="signup-email" data-translate-key="email">Email</label><input type="email" id="signup-email" required autocomplete="username"></div>
           <div class="input-group"><label for="signup-password" data-translate-key="password">Password</label><input type="password" id="signup-password" minlength="6" required autocomplete="new-password"></div>
           <p id="signup-error" class="error-message"></p><button type="submit" class="btn btn-primary" data-translate-key="signUp">Sign Up</button>
+          <div class="form-divider" data-content="or"></div>
+          <div class="social-login-buttons">
+            <button type="button" class="btn-social" data-provider="google"><img src="/assets/google-logo.svg" alt="Google"> <span data-translate-key="continueWithGoogle">Continue with Google</span></button>
+            <button type="button" class="btn-social" data-provider="facebook"><img src="/assets/facebook-logo.svg" alt="Facebook"> <span data-translate-key="continueWithFacebook">Continue with Facebook</span></button>
+            <button type="button" class="btn-social" data-provider="microsoft"><img src="/assets/microsoft-logo.svg" alt="Microsoft"> <span data-translate-key="continueWithMicrosoft">Continue with Microsoft</span></button>
+          </div>
           <p class="toggle-form-text" data-translate-key="haveAccount">Already have an account? <a href="#" id="show-login" data-translate-key="login">Login</a></p>
         </form>
         <form id="forgot-password-form" class="auth-form hidden">
@@ -110,7 +120,6 @@
         <div id="quiz-view" class="view hidden">
           <header class="player-header"><h2 id="quiz-title"></h2></header><div id="quiz-content"></div><div id="quiz-results" class="quiz-results hidden"><h3 data-translate-key="quizComplete">Quiz Complete!</h3><p id="quiz-score"></p><div class="quiz-results-actions"><button id="quiz-retry-btn" class="btn btn-primary" data-translate-key="retryQuiz">Retry Quiz</button><button id="quiz-back-btn" class="btn btn-secondary" data-translate-key="backToQuizzes">Back to Quizzes</button></div></div>
         </div>
-        
         <div id="faq-view" class="view hidden">
           <header class="view-header"><h2 data-translate-key="faqTitle">📚 Frequently Asked Questions</h2></header>
           <div class="faq-content">
