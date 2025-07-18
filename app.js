@@ -86,9 +86,11 @@ const getPlaylistFromCache = (level) => {
     return videosForLevel;
 };
 
+// Mobile Menu Logic
 const openMobileMenu = () => document.body.classList.add('sidebar-open');
 const closeMobileMenu = () => document.body.classList.remove('sidebar-open');
 
+// Smart Avatar Generation
 const generateInitialsAvatar = (displayName) => {
     if (!displayName) {
         const defaultAvatar = document.createElement('span');
@@ -110,6 +112,7 @@ const generateInitialsAvatar = (displayName) => {
     return avatarDiv;
 };
 
+// Direct Profile Picture Upload & Resize
 async function handleProfilePictureUpload(e) {
     const file = e.target.files[0];
     if (!file || !currentUser) return;
@@ -157,6 +160,7 @@ async function handleProfilePictureUpload(e) {
     e.target.value = '';
 }
 
+// Quiz Logic
 const startQuiz = (level) => {
     currentLevel = level;
     currentQuiz = quizData[level] || [];
@@ -205,6 +209,7 @@ const showQuizResults = () => {
     document.getElementById('quiz-score').textContent = `You scored ${score} out of ${currentQuiz.length}`;
 };
 
+// Video Player Logic
 const saveTimestamp = async (videoId, time) => {
     if (!currentUser || time < 1) return;
     if (!userProgress.timestamps) userProgress.timestamps = {};
@@ -231,6 +236,7 @@ const loadVideo = (videoId) => {
     document.querySelectorAll('.video-item').forEach(item => item.classList.toggle('active', item.dataset.videoId === videoId));
 };
 
+// Rendering Functions
 const renderUserDashboard = () => {
     elements.welcomeMessage.textContent = `Welcome back, ${currentUser.displayName || 'User'}!`;
     const progressValues = Object.values(userProgress.progress || {});
