@@ -57,12 +57,10 @@ async function handleSignInWithGoogle() {
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
 
-        // Check if the user is new or existing
         const userDocRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
 
         if (!userDoc.exists()) {
-            // This is a new user, create their document in Firestore
             await setDoc(userDocRef, {
                 uid: user.uid,
                 displayName: user.displayName,
@@ -76,7 +74,6 @@ async function handleSignInWithGoogle() {
         }
         return { success: true, user };
     } catch (error) {
-        // Handle common errors like user closing the popup
         if (error.code !== 'auth/popup-closed-by-user') {
             console.error("Google Sign-In failed:", error);
         }
