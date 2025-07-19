@@ -83,8 +83,8 @@ export const translations = {
     footerAccessibility: "Accessibility",
     footerFAQ: "FAQ",
     footerContact: "Contact Us",
-    
-    // Legal & FAQ Content
+
+    // FAQ Content
     faq1_q: "What is DeutschMeister?",
     faq1_a: "DeutschMeister is an online learning platform designed to help users master the German language through curated video lessons, quizzes, grammar guides, and personalized progress tracking.",
     faq2_q: "Is DeutschMeister free to use?",
@@ -105,6 +105,8 @@ export const translations = {
     faq9_a: "Yes. We use Firebase Authentication and Firestore, ensuring encrypted and secure handling of your personal data.",
     faq10_q: "How can I contact support?",
     faq10_a: "Currently, support is available via email at deutschmeister.sup@gmail.com.",
+    
+    // Legal Content
     terms1_h: "1. Acceptance of Terms",
     terms1_p: "By accessing or using DeutschMeister, you agree to be bound by these Terms of Use. If you disagree with any part of the terms, please do not use the platform.",
     terms2_h: "2. User Accounts",
@@ -139,12 +141,70 @@ export const translations = {
     accessibility2_li2: "Screen Reader Support: The platform is designed with semantic HTML for compatibility with screen readers.",
     accessibility2_li3: "Color Contrast: We provide a dark mode and ensure color contrast meets accessibility standards.",
     accessibility2_li4: "Responsive Design: Accessible on all devices including desktops, tablets, and smartphones.",
-    accessibility3_p: "If you encounter accessibility barriers, please contact us at deutschmeister.sup@gmail.com. We will address issues promptly.",
+    accessibility3_p: "If you encounter accessibility barriers, please contact us at deutschmeister.sup@gmail.com. We will address issues promptly."
   },
   de: {
-    welcomeBack: "Willkommen zurück", email: "E-Mail", password: "Passwort", forgotPassword: "Passwort vergessen?", login: "Anmelden", noAccount: "Kein Konto?", signUp: "Registrieren", createAccount: "Konto erstellen", displayName: "Anzeigename", haveAccount: "Haben Sie bereits ein Konto?", resetPassword: "Passwort zurücksetzen", resetPasswordDesc: "Geben Sie Ihre E-Mail-Adresse ein und wir senden Ihnen einen Link zum Zurücksetzen Ihres Passworts.", sendResetLink: "Link senden", backToLogin: "← Zurück zur Anmeldung", continueWithGoogle: "Weiter mit Google", logout: "Abmelden", sidebarHome: "Startseite", sidebarCourses: "Kurse", sidebarGrammar: "Grammatik", sidebarQuizzes: "Tests", sidebarProfile: "Profil", installApp: "App installieren", dashboardWelcome: "Willkommen auf Ihrem personalisierten Lern-Dashboard.", overallCompletion: "Gesamtabschluss", videosCompleted: "Abgeschlossene Videos", continueWatching: "Weiter ansehen", noRecentActivity: "Keine kürzliche Aktivität. Starten Sie eine Lektion, um sie hier zu sehen!", allCourses: "Alle Kurse", allCoursesDesc: "Durchsuchen Sie alle verfügbaren Kurse von A1 bis C1.", grammarGuides: "Grammatikführer", grammarGuidesDesc: "Detaillierte Erklärungen zu deutschen Grammatikkonzepten.", comingSoon: "Kommt bald...", quizzes: "Tests", quizzesDesc: "Testen Sie Ihr Wissen für jedes Kurslevel.", myProfile: "Mein Profil", myProfileDesc: "Verwalten Sie Ihr Konto und Ihre Einstellungen.", accountSettings: "Kontoeinstellungen", changePassword: "Passwort ändern", resetAllProgress: "Fortschritt zurücksetzen", deleteAccount: "Konto löschen", backToCourses: "← Kurse", resetProgress: "Fortschritt zurücksetzen", quizComplete: "Test abgeschlossen!", retryQuiz: "Test wiederholen", backToQuizzes: "Zurück zu den Tests", confirmLogout: "Abmeldung bestätigen", areYouSure: "Möchten Sie sich wirklich abmelden?", resetAllMyProgress: "Meinen gesamten Fortschritt zurücksetzen", cancel: "Abbrechen", confirmReset: "Zurücksetzen bestätigen", cannotBeUndone: "Diese Aktion kann nicht rückgängig gemacht werden.", deleteAccountDesc: "Diese Aktion kann nicht rückgängig gemacht werden. Alle Ihre Daten werden dauerhaft gelöscht.", changePasswordDesc: "Bitte bestätigen Sie aus Sicherheitsgründen Ihr aktuelles Passwort, bevor Sie ein neues wählen.", currentPassword: "Aktuelles Passwort", newPassword: "Neues Passwort", saveNewPassword: "Neues Passwort speichern", resetAllProgressDesc: "Dadurch wird Ihr Fortschritt in ALLEN Kursen zurückgesetzt. Diese Aktion kann nicht rückgängig gemacht werden.", footerTerms: "Nutzungsbedingungen", footerPrivacy: "Datenschutzrichtlinie", footerAccessibility: "Barrierefreiheit", footerFAQ: "FAQ", footerContact: "Kontakt"
+    // Incomplete, add German translations here
+    welcomeBack: "Willkommen zurück",
+    email: "E-Mail",
+    password: "Passwort",
+    login: "Anmelden",
+    continueWithGoogle: "Weiter mit Google",
+    sidebarHome: "Startseite",
+    sidebarCourses: "Kurse",
+    sidebarGrammar: "Grammatik",
+    sidebarQuizzes: "Tests",
+    sidebarProfile: "Profil",
+    installApp: "App installieren",
+    logout: "Abmelden",
   },
   ar: {
-    welcomeBack: "مرحباً بعودتك", email: "البريد الإلكتروني", password: "كلمة المرور", forgotPassword: "هل نسيت كلمة المرور؟", login: "تسجيل الدخول", noAccount: "ليس لديك حساب؟", signUp: "إنشاء حساب", createAccount: "أنشئ حسابك", displayName: "اسم العرض", haveAccount: "هل لديك حساب بالفعل؟", resetPassword: "إعادة تعيين كلمة المرور", resetPasswordDesc: "أدخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة مرورك.", sendResetLink: "إرسال الرابط", backToLogin: "→ العودة لتسجيل الدخول", continueWithGoogle: "المتابعة باستخدام جوجل", logout: "تسجيل الخروج", sidebarHome: "الرئيسية", sidebarCourses: "الدورات", sidebarGrammar: "قواعد اللغة", sidebarQuizzes: "الاختبارات", sidebarProfile: "الملف الشخصي", installApp: "تثبيت التطبيق", dashboardWelcome: "مرحبًا بك في لوحة التحكم التعليمية المخصصة لك.", overallCompletion: "الإنجاز الكلي", videosCompleted: "مقاطع الفيديو المكتملة", continueWatching: "متابعة المشاهدة", noRecentActivity: "لا يوجد نشاط حديث. ابدأ درسًا ليظهر هنا!", allCourses: "جميع الدورات", allCoursesDesc: "تصفح جميع الدورات المتاحة من A1 إلى C1.", grammarGuides: "أدلة القواعد", grammarGuidesDesc: "شروحات مفصلة لمفاهيم القواعد الألمانية.", comingSoon: "قريباً...", quizzes: "الاختبارات", quizzesDesc: "اختبر معلوماتك لكل مستوى دراسي.", myProfile: "ملفي الشخصي", myProfileDesc: "إدارة حسابك وتفضيلاتك.", accountSettings: "إعدادات الحساب", changePassword: "تغيير كلمة المرور", resetAllProgress: "إعادة تعيين كل التقدم", deleteAccount: "حذف الحساب", backToCourses: "→ الدورات", resetProgress: "إعادة تعيين التقدم", quizComplete: "اكتمل الاختبار!", retryQuiz: "إعادة الاختبار", backToQuizzes: "العودة إلى الاختبارات", confirmLogout: "تأكيد تسجيل الخروج", areYouSure: "هل أنت متأكد أنك تريد تسجيل الخروج؟", resetAllMyProgress: "إعادة تعيين كل تقدمي", cancel: "إلغاء", confirmReset: "تأكيد الإعادة", cannotBeUndone: "لا يمكن التراجع عن هذا الإجراء.", deleteAccountDesc: "لا يمكن التراجع عن هذا الإجراء. سيتم حذف جميع بياناتك بشكل دائم.", changePasswordDesc: "لأمانك، يرجى تأكيد كلمة المرور الحالية قبل اختيار كلمة مرور جديدة.", currentPassword: "كلمة المرور الحالية", newPassword: "كلمة المرور الجديدة", saveNewPassword: "حفظ كلمة المرور الجديدة", resetAllProgressDesc: "سيؤدي هذا إلى إعادة تعيين تقدمك في جميع الدورات. لا يمكن التراجع عن هذا الإجراء.", footerTerms: "شروط الاستخدام", footerPrivacy: "سياسة الخصوصية", footerAccessibility: "إمكانية الوصول", footerFAQ: "الأسئلة الشائعة", footerContact: "اتصل بنا"
+    // Auth
+    welcomeBack: "مرحباً بعودتك",
+    email: "البريد الإلكتروني",
+    password: "كلمة المرور",
+    forgotPassword: "هل نسيت كلمة المرور؟",
+    login: "تسجيل الدخول",
+    noAccount: "ليس لديك حساب؟",
+    signUp: "إنشاء حساب",
+    createAccount: "أنشئ حسابك",
+    displayName: "اسم العرض",
+    haveAccount: "هل لديك حساب بالفعل؟",
+    resetPassword: "إعادة تعيين كلمة المرور",
+    resetPasswordDesc: "أدخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة مرورك.",
+    sendResetLink: "إرسال الرابط",
+    backToLogin: "→ العودة لتسجيل الدخول",
+    continueWithGoogle: "المتابعة باستخدام جوجل",
+
+    // Header & Sidebar
+    logout: "تسجيل الخروج",
+    sidebarHome: "الرئيسية",
+    sidebarCourses: "الدورات",
+    sidebarGrammar: "قواعد اللغة",
+    sidebarQuizzes: "الاختبارات",
+    sidebarProfile: "الملف الشخصي",
+    installApp: "تثبيت التطبيق",
+    
+    // Dashboard
+    dashboardWelcome: "مرحبًا بك في لوحة التحكم التعليمية المخصصة لك.",
+    overallCompletion: "الإنجاز الكلي",
+    videosCompleted: "مقاطع الفيديو المكتملة",
+    continueWatching: "متابعة المشاهدة",
+    noRecentActivity: "لا يوجد نشاط حديث. ابدأ درسًا ليظهر هنا!",
+    
+    // Other
+    myProfile: "ملفي الشخصي",
+    myProfileDesc: "إدارة حسابك وتفضيلاتك.",
+    accountSettings: "إعدادات الحساب",
+    changePassword: "تغيير كلمة المرور",
+    resetAllProgress: "إعادة تعيين كل التقدم",
+    deleteAccount: "حذف الحساب",
+    
+    // Footer & Legal
+    footerTerms: "شروط الاستخدام",
+    footerPrivacy: "سياسة الخصوصية",
+    footerAccessibility: "إمكانية الوصول",
+    footerFAQ: "الأسئلة الشائعة",
+    footerContact: "اتصل بنا",
   },
 };
