@@ -10,29 +10,11 @@ import {
     updatePassword,
     reauthenticateWithCredential,
     EmailAuthProvider,
-    GoogleAuthProvider,
-    signInWithPopup
+    signInWithPopup,
+    GoogleAuthProvider
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-import { doc, setDoc, getDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { doc, setDoc, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 import { auth, db } from './firebase.js';
-
-async function ensureUserDocument(user) {
-    const userDocRef = doc(db, "users", user.uid);
-    const userDoc = await getDoc(userDocRef);
-    if (!userDoc.exists()) {
-        await setDoc(userDocRef, {
-            uid: user.uid,
-            displayName: user.displayName,
-            email: user.email,
-            createdAt: new Date(),
-            photoURL: user.photoURL,
-            progress: { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0 },
-            timestamps: {},
-            quizScores: {}
-        });
-    }
-    return { success: true };
-}
 
 async function handleSignUp(name, email, password) {
     let user = null;
@@ -40,7 +22,17 @@ async function handleSignUp(name, email, password) {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         user = userCredential.user;
         await updateProfile(user, { displayName: name });
-        await ensureUserDocument(user);
+        const userDocRef = doc(db, "users", user.uid);
+        await setDoc(userDocRef, {
+            uid: user.uid,
+            displayName: name,
+            email: user.email,
+            createdAt: new Date(),
+            photoURL: null,
+            progress: { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0 },
+            timestamps: {},
+            quizScores: {}
+        });
         return { success: true, user };
     } catch (error) {
         if (user) {
@@ -59,14 +51,35 @@ async function handleLogin(email, password) {
     }
 }
 
-async function handleGoogleSignIn() {
+async function handleSignInWithGoogle() {
     const provider = new GoogleAuthProvider();
     try {
         const result = await signInWithPopup(auth, provider);
-        await ensureUserDocument(result.user);
-        return { success: true, user: result.user };
+        const user = result.user;
+
+        // Check if the user is new or existing
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (!userDoc.exists()) {
+            // This is a new user, create their document in Firestore
+            await setDoc(userDocRef, {
+                uid: user.uid,
+                displayName: user.displayName,
+                email: user.email,
+                createdAt: new Date(),
+                photoURL: user.photoURL,
+                progress: { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0 },
+                timestamps: {},
+                quizScores: {}
+            });
+        }
+        return { success: true, user };
     } catch (error) {
-        console.error("Google Sign-In failed:", error);
+        // Handle common errors like user closing the popup
+        if (error.code !== 'auth/popup-closed-by-user') {
+            console.error("Google Sign-In failed:", error);
+        }
         return { success: false, error: error.message };
     }
 }
@@ -98,33 +111,17 @@ async function handleLogoutAndReset() {
     }
 }
 
-async function handleDeleteAccount(password) {
-    const user = auth.currentUser;
-    if (!user) {
-        return { success: false, error: "No user is logged in." };
-    }
+async function handleDeleteAccount() {
     try {
-        // For email/password users, we need to re-authenticate.
-        // Google Sign-in users might not have a password.
-        if (user.providerData.some(p => p.providerId === 'password')) {
-            if (!password) {
-                 return { success: false, error: "Password is required for this action." };
-            }
-            const credential = EmailAuthProvider.credential(user.email, password);
-            await reauthenticateWithCredential(user, credential);
+        const user = auth.currentUser;
+        if (user) {
+            const userDocRef = doc(db, "users", user.uid);
+            await deleteDoc(userDocRef);
+            await deleteUser(user);
         }
-        
-        const userDocRef = doc(db, "users", user.uid);
-        await deleteDoc(userDocRef);
-        await deleteUser(user);
-        
         return { success: true };
     } catch (error) {
-        if (error.code === 'auth/wrong-password') {
-            return { success: false, error: "Incorrect password. Account not deleted." };
-        }
-        console.error("Account deletion failed:", error);
-        return { success: false, error: "An error occurred during account deletion." };
+        return { success: false, error: error.message };
     }
 }
 
@@ -162,7 +159,9 @@ async function handleConfirmPasswordReset(code, newPassword) {
 async function handleChangePassword(currentPassword, newPassword) {
     try {
         const user = auth.currentUser;
-        if (!user) throw new Error('No user is currently logged in.');
+        if (!user) {
+            throw new Error('No user is currently logged in.');
+        }
         const credential = EmailAuthProvider.credential(user.email, currentPassword);
         await reauthenticateWithCredential(user, credential);
         await updatePassword(user, newPassword);
@@ -176,7 +175,7 @@ async function handleChangePassword(currentPassword, newPassword) {
 }
 
 export {
-    handleSignUp, handleLogin, handleLogout, handleLogoutAndReset,
+    handleSignUp, handleLogin, handleSignInWithGoogle, handleLogout, handleLogoutAndReset,
     handleDeleteAccount, handlePasswordReset, handleVerifyPasswordResetCode,
-    handleConfirmPasswordReset, handleChangePassword, handleGoogleSignIn
+    handleConfirmPasswordReset, handleChangePassword
 };
