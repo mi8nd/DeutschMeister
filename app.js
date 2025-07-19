@@ -40,8 +40,9 @@ const setLanguage = (lang) => {
 
     document.querySelectorAll('[data-translate-key]').forEach(el => {
         const key = el.dataset.translateKey;
-        if (translations[lang] && translations[lang][key]) {
-            el.textContent = translations[lang][key];
+        const translation = translations[lang]?.[key] || translations['en'][key];
+        if (translation) {
+            el.textContent = translation;
         }
     });
 };
@@ -77,9 +78,15 @@ const handleNavigation = (hash, updateHistory = true) => {
 
 const showView = (viewId) => handleNavigation(`#${viewId}`);
 
-const showAuthForm = (formIdToShow) => {
-    document.querySelectorAll('.auth-form').forEach(form => form.classList.add('hidden'));
-    document.getElementById(formIdToShow).classList.remove('hidden');
+const showAuthForm = (isSignUp) => {
+    const container = document.getElementById('auth-panel-container');
+    if (container) {
+        if (isSignUp) {
+            container.classList.add("right-panel-active");
+        } else {
+            container.classList.remove("right-panel-active");
+        }
+    }
 };
 
 const getPlaylistFromCache = (level) => {
@@ -411,7 +418,7 @@ const updateUIForUser = (user, progressData) => {
     renderUserDashboard();
     renderContinueWatching();
     handleNavigation(window.location.hash || '#home', false);
-    setLanguage(localStorage.getItem('language') || 'en'); // Re-apply language on login
+    setLanguage(localStorage.getItem('language') || 'en');
 };
 
 const updateUIForGuest = () => {
@@ -420,12 +427,12 @@ const updateUIForGuest = () => {
     elements.appContainer.classList.add('hidden');
     elements.passwordResetView.classList.add('hidden');
     elements.authContainer.classList.remove('hidden');
-    showAuthForm('login-form');
-    setLanguage(localStorage.getItem('language') || 'en'); // Re-apply language on logout
+    showAuthForm(false); // Show login panel by default
+    setLanguage(localStorage.getItem('language') || 'en');
 };
 
 const cacheDOMElements = () => {
-    const ids = ['app-loader', 'auth-container', 'app-container', 'toast-container', 'login-form', 'signup-form', 'forgot-password-form', 'logout-btn', 'dark-mode-toggle', 'logout-modal-overlay', 'confirm-logout-btn', 'cancel-logout-btn', 'reset-progress-checkbox', 'reset-course-modal-overlay', 'reset-course-confirm-text', 'confirm-reset-btn', 'cancel-reset-btn', 'youtube-player-container', 'video-list', 'welcome-message', 'profile-name', 'profile-email', 'delete-account-btn', 'delete-account-modal-overlay', 'cancel-delete-btn', 'confirm-delete-btn', 'change-password-btn', 'password-reset-view', 'password-reset-form', 'change-password-modal-overlay', 'change-password-form', 'cancel-change-password-btn', 'change-password-error', 'sidebar', 'hamburger-btn', 'close-sidebar-btn', 'install-app-btn', 'reset-all-progress-btn', 'reset-all-modal-overlay', 'cancel-reset-all-btn', 'confirm-reset-all-btn', 'pfp-upload-input', 'pfp-container', 'faq-view', 'terms-view', 'privacy-view', 'accessibility-view', 'lang-toggle-btn', 'lang-dropdown'];
+    const ids = ['app-loader', 'auth-container', 'app-container', 'toast-container', 'login-form', 'signup-form', 'logout-btn', 'dark-mode-toggle', 'logout-modal-overlay', 'confirm-logout-btn', 'cancel-logout-btn', 'reset-progress-checkbox', 'reset-course-modal-overlay', 'reset-course-confirm-text', 'confirm-reset-btn', 'cancel-reset-btn', 'youtube-player-container', 'video-list', 'welcome-message', 'profile-name', 'profile-email', 'delete-account-btn', 'delete-account-modal-overlay', 'cancel-delete-btn', 'confirm-delete-btn', 'change-password-btn', 'password-reset-view', 'password-reset-form', 'change-password-modal-overlay', 'change-password-form', 'cancel-change-password-btn', 'change-password-error', 'sidebar', 'hamburger-btn', 'close-sidebar-btn', 'install-app-btn', 'reset-all-progress-btn', 'reset-all-modal-overlay', 'cancel-reset-all-btn', 'confirm-reset-all-btn', 'pfp-upload-input', 'pfp-container', 'faq-view', 'terms-view', 'privacy-view', 'accessibility-view', 'lang-toggle-btn', 'lang-dropdown'];
     ids.forEach(id => {
         const camelCaseId = id.replace(/-(\w)/g, (_, c) => c.toUpperCase());
         elements[camelCaseId] = document.getElementById(id);
@@ -483,20 +490,9 @@ const setupEventListeners = () => {
         if (!result.success) signupError.textContent = result.error.includes('auth/email-already-in-use') ? 'This email is already in use.' : 'An error occurred.';
     });
 
-    elements.forgotPasswordForm?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const forgotError = document.getElementById('forgot-error');
-        forgotError.textContent = '';
-        const email = elements.forgotPasswordForm['forgot-email'].value;
-        const result = await handlePasswordReset(email);
-        if (result.success) {
-            showToast('Password reset email sent! Check your inbox.', 'success');
-            showAuthForm('login-form');
-        } else {
-            forgotError.textContent = 'Could not send email. Please check the address.';
-        }
-    });
-
+    // Event listener for the old forgot password form is no longer needed
+    // as it's part of the main click handler now.
+    
     elements.passwordResetForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const newPassword = document.getElementById('reset-new-password').value;
@@ -545,6 +541,23 @@ const setupEventListeners = () => {
         const footerLink = target.closest('.footer-link');
         const continueCard = target.closest('.continue-watching-card');
 
+        // New Auth Panel Buttons
+        if (target.id === 'signUp') showAuthForm(true);
+        if (target.id === 'signIn') showAuthForm(false);
+        if (target.id === 'forgot-password-link') {
+            // This is a temporary solution for the forgot password link
+            // In a real app, you would show a separate modal or view
+            const email = prompt("Please enter your email address to receive a password reset link:");
+            if (email) {
+                const result = await handlePasswordReset(email);
+                if (result.success) {
+                    showToast('Password reset email sent! Check your inbox.', 'success');
+                } else {
+                    showToast('Could not send email. Please check the address.', 'error');
+                }
+            }
+        }
+
         if (socialButton) {
             const provider = socialButton.dataset.provider;
             if (provider === 'google') {
@@ -559,11 +572,7 @@ const setupEventListeners = () => {
                 deferredInstallPrompt = null;
                 elements.installAppBtn?.classList.add('hidden');
             }
-        } else if (target.matches('#show-signup')) { e.preventDefault(); showAuthForm('signup-form'); }
-        else if (target.matches('#show-login')) { e.preventDefault(); showAuthForm('login-form'); }
-        else if (target.matches('#forgot-password-link')) { e.preventDefault(); showAuthForm('forgot-password-form'); }
-        else if (target.matches('#back-to-login')) { e.preventDefault(); showAuthForm('login-form'); }
-        else if (navLink || (footerLink && footerLink.getAttribute('href').startsWith('#'))) {
+        } else if (navLink || (footerLink && footerLink.getAttribute('href').startsWith('#'))) {
             e.preventDefault();
             const link = navLink || footerLink;
             handleNavigation(link.getAttribute('href'));
@@ -690,6 +699,7 @@ const initializeApp = async () => {
             if (userDoc.exists()) {
                 updateUIForUser(user, userDoc.data());
             } else {
+                console.warn("User exists in Auth but not in Firestore. Logging out.");
                 await handleLogout();
             }
         } else {
