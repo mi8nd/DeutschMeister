@@ -1,7 +1,7 @@
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 import { auth, db } from './firebase.js';
-import { handleSignUp, handleLogin, handleLogout, handleLogoutAndReset, handleDeleteAccount, handlePasswordReset, handleVerifyPasswordResetCode, handleConfirmPasswordReset, handleChangePassword, handleGoogleSignIn } from './auth.js';
+import { handleSignUp, handleLogin, handleSignInWithGoogle, handleLogout, handleLogoutAndReset, handleDeleteAccount, handlePasswordReset, handleVerifyPasswordResetCode, handleConfirmPasswordReset, handleChangePassword } from './auth.js';
 import { fetchPlaylistVideoCounts, fetchAndCacheAllVideos, PLAYLISTS } from './youtube.js';
 import { quizData } from './quiz.js';
 import { translations } from './translations.js';
@@ -32,16 +32,16 @@ const applyTheme = (theme) => {
     }
 };
 
+// Language and Translation Logic
 const setLanguage = (lang) => {
     localStorage.setItem('language', lang);
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+
     document.querySelectorAll('[data-translate-key]').forEach(el => {
         const key = el.dataset.translateKey;
         if (translations[lang] && translations[lang][key]) {
             el.textContent = translations[lang][key];
-        } else if (translations['en'] && translations['en'][key]) {
-            el.textContent = translations['en'][key];
         }
     });
 };
@@ -88,9 +88,11 @@ const getPlaylistFromCache = (level) => {
     return videosForLevel;
 };
 
+// Mobile Menu Logic
 const openMobileMenu = () => document.body.classList.add('sidebar-open');
 const closeMobileMenu = () => document.body.classList.remove('sidebar-open');
 
+// Smart Avatar Generation
 const generateInitialsAvatar = (displayName) => {
     if (!displayName) {
         const defaultAvatar = document.createElement('span');
@@ -112,6 +114,7 @@ const generateInitialsAvatar = (displayName) => {
     return avatarDiv;
 };
 
+// Direct Profile Picture Upload & Resize
 async function handleProfilePictureUpload(e) {
     const file = e.target.files[0];
     if (!file || !currentUser) return;
@@ -159,6 +162,7 @@ async function handleProfilePictureUpload(e) {
     e.target.value = '';
 }
 
+// Quiz Logic
 const startQuiz = (level) => {
     currentLevel = level;
     currentQuiz = quizData[level] || [];
@@ -207,6 +211,7 @@ const showQuizResults = () => {
     document.getElementById('quiz-score').textContent = `You scored ${score} out of ${currentQuiz.length}`;
 };
 
+// Video Player Logic
 const saveTimestamp = async (videoId, time) => {
     if (!currentUser || time < 1) return;
     if (!userProgress.timestamps) userProgress.timestamps = {};
@@ -233,6 +238,7 @@ const loadVideo = (videoId) => {
     document.querySelectorAll('.video-item').forEach(item => item.classList.toggle('active', item.dataset.videoId === videoId));
 };
 
+// Rendering Functions
 const renderUserDashboard = () => {
     elements.welcomeMessage.textContent = `Welcome back, ${currentUser.displayName || 'User'}!`;
     const progressValues = Object.values(userProgress.progress || {});
@@ -392,13 +398,6 @@ const renderContinueWatching = () => {
     });
 };
 
-const promptForPassword = () => {
-    return new Promise((resolve) => {
-        const password = prompt("For your security, please enter your password to confirm this action:");
-        resolve(password);
-    });
-};
-
 // UI State Management
 const updateUIForUser = (user, progressData) => {
     currentUser = user;
@@ -412,6 +411,7 @@ const updateUIForUser = (user, progressData) => {
     renderUserDashboard();
     renderContinueWatching();
     handleNavigation(window.location.hash || '#home', false);
+    setLanguage(localStorage.getItem('language') || 'en'); // Re-apply language on login
 };
 
 const updateUIForGuest = () => {
@@ -421,6 +421,7 @@ const updateUIForGuest = () => {
     elements.passwordResetView.classList.add('hidden');
     elements.authContainer.classList.remove('hidden');
     showAuthForm('login-form');
+    setLanguage(localStorage.getItem('language') || 'en'); // Re-apply language on logout
 };
 
 const cacheDOMElements = () => {
@@ -533,23 +534,23 @@ const setupEventListeners = () => {
         if (document.body.classList.contains('sidebar-open') && !e.target.closest('.sidebar')) {
             closeMobileMenu();
         }
-        
+
         if (!e.target.closest('.lang-toggle-container')) {
             elements.langDropdown?.classList.add('hidden');
         }
 
         const target = e.target;
+        const socialButton = target.closest('.btn-social');
         const navLink = target.closest('.nav-link');
         const footerLink = target.closest('.footer-link');
         const continueCard = target.closest('.continue-watching-card');
-        const socialBtn = target.closest('.btn-social');
 
-        if (socialBtn) {
-            const provider = socialBtn.dataset.provider;
+        if (socialButton) {
+            const provider = socialButton.dataset.provider;
             if (provider === 'google') {
-                const result = await handleGoogleSignIn();
+                const result = await handleSignInWithGoogle();
                 if (!result.success) {
-                    showToast('Failed to sign in with Google.', 'error');
+                    showToast('Could not sign in with Google.', 'error');
                 }
             }
         } else if (target.closest('#install-app-btn')) {
@@ -574,8 +575,12 @@ const setupEventListeners = () => {
             showView('video-player');
             elements.videoList.innerHTML = '<div class="spinner"></div>';
             currentPlaylist = getPlaylistFromCache(currentLevel);
-            if (currentPlaylist.length) { renderVideoList(); loadVideo(continueCard.dataset.videoId); }
-            else { elements.videoList.innerHTML = '<p>Could not load videos.</p>'; }
+            if (currentPlaylist.length) {
+                renderVideoList();
+                loadVideo(continueCard.dataset.videoId);
+            } else {
+                elements.videoList.innerHTML = '<p>Could not load videos.</p>';
+            }
         }
         else if (target.matches('.start-course-btn')) {
             currentLevel = target.dataset.level;
@@ -583,8 +588,12 @@ const setupEventListeners = () => {
             showView('video-player');
             elements.videoList.innerHTML = '<div class="spinner"></div>';
             currentPlaylist = getPlaylistFromCache(currentLevel);
-            if (currentPlaylist.length) { renderVideoList(); loadVideo(currentPlaylist[0].videoId); }
-            else { elements.videoList.innerHTML = '<p>Could not load videos.</p>'; }
+            if (currentPlaylist.length) {
+                renderVideoList();
+                loadVideo(currentPlaylist[0].videoId);
+            } else {
+                elements.videoList.innerHTML = '<p>Could not load videos.</p>';
+            }
         }
         else if (target.matches('#back-to-courses-btn')) { showView('courses'); }
         else if (target.closest('.video-item') && !target.matches('.complete-btn')) { loadVideo(target.closest('.video-item').dataset.videoId); }
@@ -620,29 +629,12 @@ const setupEventListeners = () => {
             resetAllProgress();
             elements.resetAllModalOverlay.classList.add('hidden');
         }
-        else if (target.matches('#delete-account-btn')) {
-             if (currentUser.providerData.some(p => p.providerId === 'google.com')) {
-                // For Google users, we can't prompt for a password they don't have.
-                // We ask for a simple confirmation instead.
-                if (confirm("Are you sure you want to permanently delete your account? This action cannot be undone.")) {
-                    const result = await handleDeleteAccount();
-                    if (!result.success) showToast(`Error: ${result.error}`, 'error');
-                }
-            } else {
-                elements.deleteAccountModalOverlay.classList.remove('hidden');
-            }
-        }
+        else if (target.matches('#delete-account-btn')) { elements.deleteAccountModalOverlay.classList.remove('hidden'); }
         else if (target === elements.deleteAccountModalOverlay || target.matches('#cancel-delete-btn')) { elements.deleteAccountModalOverlay.classList.add('hidden'); }
         else if (target.matches('#confirm-delete-btn')) {
-            const password = await promptForPassword();
-            if (password) {
-                const result = await handleDeleteAccount(password);
-                if (result.success) {
-                    showToast('Account deleted successfully.', 'info');
-                } else {
-                    showToast(`Error: ${result.error}`, 'error');
-                }
-            }
+            const result = await handleDeleteAccount();
+            if (result.success) showToast('Account deleted successfully.', 'info');
+            else showToast(`Error: ${result.error}`, 'error');
             elements.deleteAccountModalOverlay.classList.add('hidden');
         }
         else if (target.matches('#change-password-btn')) {
@@ -698,9 +690,7 @@ const initializeApp = async () => {
             if (userDoc.exists()) {
                 updateUIForUser(user, userDoc.data());
             } else {
-                await ensureUserDocument(user); // Ensure doc exists for social sign-ins
-                const freshDoc = await getDoc(doc(db, "users", user.uid));
-                updateUIForUser(user, freshDoc.data());
+                await handleLogout();
             }
         } else {
             updateUIForGuest();
