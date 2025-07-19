@@ -20,40 +20,52 @@
   <div id="app-loader" class="app-loader"><div class="spinner"></div></div>
   <div id="toast-container"></div>
   <div id="auth-container" class="auth-container hidden">
-    <div class="auth-layout">
-      <div class="auth-branding"><h1 class="logo">DeutschMeister</h1><p>Your journey to German fluency starts here.</p></div>
-      <div class="auth-form-container">
-        <form id="login-form" class="auth-form">
-          <h2 data-translate-key="welcomeBack">Welcome Back</h2>
-          <div class="input-group"><label for="login-email" data-translate-key="email">Email</label><input type="email" id="login-email" required autocomplete="username"></div>
-          <div class="input-group"><label for="login-password" data-translate-key="password">Password</label><input type="password" id="login-password" required autocomplete="current-password"></div>
-          <p class="forgot-password-text"><a href="#" id="forgot-password-link" data-translate-key="forgotPassword">Forgot Password?</a></p>
-          <p id="login-error" class="error-message"></p><button type="submit" class="btn btn-primary" data-translate-key="login">Login</button>
-          <div class="form-divider" data-content="or"></div>
-          <div class="social-login-buttons">
-            <button type="button" class="btn-social" data-provider="google"><img src="/assets/google-logo.svg" alt="Google"> <span data-translate-key="continueWithGoogle">Continue with Google</span></button>
-          </div>
-          <p class="toggle-form-text" data-translate-key="noAccount">No account? <a href="#" id="show-signup" data-translate-key="signUp">Sign up</a></p>
-        </form>
-        <form id="signup-form" class="auth-form hidden">
-          <h2 data-translate-key="createAccount">Create Your Account</h2>
-          <div class="input-group"><label for="signup-name" data-translate-key="displayName">Display Name</label><input type="text" id="signup-name" required autocomplete="name"></div>
-          <div class="input-group"><label for="signup-email" data-translate-key="email">Email</label><input type="email" id="signup-email" required autocomplete="username"></div>
-          <div class="input-group"><label for="signup-password" data-translate-key="password">Password</label><input type="password" id="signup-password" minlength="6" required autocomplete="new-password"></div>
-          <p id="signup-error" class="error-message"></p><button type="submit" class="btn btn-primary" data-translate-key="signUp">Sign Up</button>
-          <div class="form-divider" data-content="or"></div>
-          <div class="social-login-buttons">
-            <button type="button" class="btn-social" data-provider="google"><img src="/assets/google-logo.svg" alt="Google"> <span data-translate-key="continueWithGoogle">Continue with Google</span></button>
-          </div>
-          <p class="toggle-form-text" data-translate-key="haveAccount">Already have an account? <a href="#" id="show-login" data-translate-key="login">Login</a></p>
-        </form>
-        <form id="forgot-password-form" class="auth-form hidden">
-          <h2 data-translate-key="resetPassword">Reset Password</h2><p class="form-description" data-translate-key="resetPasswordDesc">Enter your email address and we'll send you a link to reset your password.</p>
-          <div class="input-group"><label for="forgot-email" data-translate-key="email">Email</label><input type="email" id="forgot-email" required autocomplete="username"></div>
-          <p id="forgot-error" class="error-message"></p><button type="submit" class="btn btn-primary" data-translate-key="sendResetLink">Send Reset Link</button>
-          <p class="toggle-form-text"><a href="#" id="back-to-login" data-translate-key="backToLogin">← Back to Login</a></p>
-        </form>
-      </div>
+    <div class="auth-container-redesigned" id="auth-panel-container">
+        <!-- Sign Up -->
+        <div class="form-container sign-up-container">
+            <form id="signup-form">
+                <h1 data-translate-key="createAccount">Create Account</h1>
+                <div class="social-login-buttons">
+                    <button type="button" class="btn-social" data-provider="google"><img src="/assets/google-logo.svg" alt="Google"></button>
+                </div>
+                <span data-translate-key="orUseEmail">or use your email for registration</span>
+                <input type="text" id="signup-name" placeholder="Name" required autocomplete="name" />
+                <input type="email" id="signup-email" placeholder="Email" required autocomplete="username" />
+                <input type="password" id="signup-password" placeholder="Password" required minlength="6" autocomplete="new-password" />
+                <p id="signup-error" class="error-message"></p>
+                <button type="submit" class="btn btn-primary" data-translate-key="signUp">Sign Up</button>
+            </form>
+        </div>
+        <!-- Sign In -->
+        <div class="form-container sign-in-container">
+            <form id="login-form">
+                <h1 data-translate-key="signIn">Sign in</h1>
+                <div class="social-login-buttons">
+                    <button type="button" class="btn-social" data-provider="google"><img src="/assets/google-logo.svg" alt="Google"></button>
+                </div>
+                <span data-translate-key="orUseAccount">or use your account</span>
+                <input type="email" id="login-email" placeholder="Email" required autocomplete="username" />
+                <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password" />
+                <a href="#" id="forgot-password-link" data-translate-key="forgotPassword">Forgot your password?</a>
+                <p id="login-error" class="error-message"></p>
+                <button type="submit" class="btn btn-primary" data-translate-key="signIn">Sign In</button>
+            </form>
+        </div>
+        <!-- Overlay -->
+        <div class="overlay-container">
+            <div class="overlay">
+                <div class="overlay-panel overlay-left">
+                    <h1 data-translate-key="welcomeBack">Welcome Back!</h1>
+                    <p data-translate-key="signInInfo">To keep connected with us please login with your personal info</p>
+                    <button class="btn ghost" id="signIn" data-translate-key="signIn">Sign In</button>
+                </div>
+                <div class="overlay-panel overlay-right">
+                    <h1 data-translate-key="helloFriend">Hello, Friend!</h1>
+                    <p data-translate-key="startJourney">Enter your personal details and start your journey with us</p>
+                    <button class="btn ghost" id="signUp" data-translate-key="signUp">Sign Up</button>
+                </div>
+            </div>
+        </div>
     </div>
   </div>
   <div id="app-container" class="app-container hidden app-layout">
