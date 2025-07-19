@@ -184,14 +184,15 @@ body.sidebar-open .main-content {
     overflow: hidden;
     width: 100%;
     max-width: 768px;
-    min-height: 480px;
+    min-height: 520px;
 }
 
-.auth-container-redesigned h1 { font-weight: bold; margin: 0; }
+.auth-container-redesigned h1 { font-weight: bold; margin: 0; font-size: 1.8rem; }
 .auth-container-redesigned p { font-size: 14px; font-weight: 100; line-height: 20px; letter-spacing: 0.5px; margin: 20px 0 30px; }
 .auth-container-redesigned span { font-size: 12px; }
 .auth-container-redesigned a { color: #333; font-size: 14px; text-decoration: none; margin: 15px 0; }
-.auth-container-redesigned button { border-radius: 20px; }
+.auth-container-redesigned button.btn-primary { border-radius: 20px; padding: 12px 45px; }
+.auth-container-redesigned button.ghost { border-radius: 20px; padding: 12px 45px; }
 
 .form-container {
     position: absolute;
@@ -291,7 +292,6 @@ body.sidebar-open .main-content {
     width: 40px;
 }
 .btn-social img { width: 20px; height: 20px; }
-
 /* End of new auth panel styles */
 
 .app-container {
@@ -1192,8 +1192,7 @@ body.sidebar-open .sidebar {
     .auth-branding { display: none; }
     .auth-container-redesigned { max-width: 400px; min-height: 650px; }
     .sign-in-container, .sign-up-container { width: 100%; }
-    .overlay-container { display: none; } /* Hide overlay panel on mobile */
-    .auth-container-redesigned.right-panel-active .sign-up-container { transform: translateY(100%); } /* Temporary setup for toggle */
+    .overlay-container { display: none; }
 }
 
 @media (max-width: 320px) {
@@ -1204,6 +1203,7 @@ body.sidebar-open .sidebar {
     .site-footer {
         display: none;
     }
+
     .view-header { border: none; text-align: center; margin-bottom: 1rem; }
     .view-header h2 { font-size: 1.2rem; }
     #home-view { padding-top: 1rem; }
